@@ -26,7 +26,7 @@ impl BinarySemaphore {
     pub fn P_wait(&self) {
         loop {
             let mut current = self.count.load(Ordering::Relaxed);
-            while current <= 0 {
+            while current == 0 {
                 for _ in 0..10_000 {
                     // crude delay
                     let _ = self.count.load(Ordering::Relaxed);
@@ -135,15 +135,19 @@ impl SharedMonitor {
         }
     }
     pub fn enter(&self) {
+        #[allow(clippy::needless_borrow)]
         unsafe { (&mut *self.monitor.get()).enter(); }
     }
     pub fn leave(&self) {
+        #[allow(clippy::needless_borrow)]
         unsafe { (&mut *self.monitor.get()).leave(); }
     }
     pub fn wait(&self, condition: usize) {
+        #[allow(clippy::needless_borrow)]
         unsafe { (&mut *self.monitor.get()).wait(condition); }
     }
     pub fn signal(&self, condition: usize) {
+        #[allow(clippy::needless_borrow)]
         unsafe { (&mut *self.monitor.get()).signal(condition); }
     }
 }
