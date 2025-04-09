@@ -99,6 +99,7 @@ pub struct SharedMonitor {
 
 unsafe impl Sync for SharedMonitor {}
 
+/*
 impl SharedMonitor {
     pub fn new(kind: MonitorKind, num_conds: usize) -> Self {
         let mon = match kind {
@@ -121,7 +122,32 @@ impl SharedMonitor {
             f(&mut *(self.monitor.get() as *mut SemaphoreMonitor));
         }
     }
+} */
+
+impl SharedMonitor {
+    pub fn new(kind: MonitorKind, num_conds: usize) -> Self {
+        let mon: Box<dyn Monitor + Send> = match kind {
+            MonitorKind::Semaphore => Box::new(SemaphoreMonitor::new(num_conds)),
+            _ => unimplemented!(),
+        };
+        SharedMonitor {
+            monitor: UnsafeCell::new(mon),
+        }
+    }
+    pub fn enter(&self) {
+        unsafe { (&mut *self.monitor.get()).enter(); }
+    }
+    pub fn leave(&self) {
+        unsafe { (&mut *self.monitor.get()).leave(); }
+    }
+    pub fn wait(&self, condition: usize) {
+        unsafe { (&mut *self.monitor.get()).wait(condition); }
+    }
+    pub fn signal(&self, condition: usize) {
+        unsafe { (&mut *self.monitor.get()).signal(condition); }
+    }
 }
+
 
 /*
  * ====================================================================================================================

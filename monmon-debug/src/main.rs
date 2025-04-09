@@ -158,19 +158,11 @@ fn sem_monitor_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondit
         let monitor = monitor.clone();
         let handle = thread::spawn(move || {
             for _ in 0..config.per_producer {
-
-                // unsafe {
-                    { // critical section
-                    monitor.with_monitor(|m| {
-                        m.enter();
-                        m.wait(0);
-                        accum.increment();
-                        m.signal(0);
-                        m.leave();
-                    });
-                    
-                    } // end critical section
-                // }
+                { // critical section
+                monitor.enter();
+                accum.increment();
+                monitor.leave();
+                } // end critical section
             }
         });
         handles.push(handle);
