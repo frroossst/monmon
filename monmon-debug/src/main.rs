@@ -1,3 +1,4 @@
+use monmon_debug::logger::ProgressBar;
 use rand::Rng;
 use std::sync::{Arc, Mutex};
 use std::thread;
@@ -224,14 +225,11 @@ fn happylock_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceConditio
         let monitor = monitor.clone();
         let handle = thread::spawn(move || {
             for _ in 0..config.per_producer {
-
-                // unsafe {
-                    { // critical section
-                        let key = happylock::ThreadKey::get().unwrap();
-                        let _unused = monitor.lock(key);
-                        accum.increment();
-                    } // end critical section
-                // }
+                { // critical section
+                    let key = happylock::ThreadKey::get().unwrap();
+                    let _unused = monitor.lock(key);
+                    accum.increment();
+                } // end critical section
             }
         });
         handles.push(handle);
@@ -286,7 +284,25 @@ fn race(racekind: RaceKind, config: Arc<Config>) {
 }
 
 fn main() {
-    let config = Arc::new(Config::new(ConfigKind::Fast));
+    let mut args = std::env::args();
+    let _program = args.next().expect("program name");
+
+    let mode = args.next().unwrap_or("fast".into());
+    let config = match mode.as_str() {
+        "slow" => {
+            Config::new(ConfigKind::Slow)
+        },
+        "medium" => {
+            Config::new(ConfigKind::Medium)
+        },
+        _ => {
+            Config::new(ConfigKind::Fast)
+        }
+    };
+
+    println!("{:?}", config);
+
+    let config = Arc::new(config);
 
     race(RaceKind::Unsafe, config.clone());
     race(RaceKind::SemaphoreMonitor, config.clone());
