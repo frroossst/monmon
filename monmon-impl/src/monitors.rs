@@ -147,12 +147,13 @@ pub struct SemaphoreMonitor {
     /// only one thread is allowed to be _inside_ the monitor at any given time
     mutex: BinarySemaphore,
 
-    sem_enter: BinarySemaphore,
-    sem_urgent: BinarySemaphore,
-    urgent_count: usize,
+    enter_queue: BinarySemaphore,
     /// it is upto the user of the monitor to implement the mapping of semantic
     /// meaning to actual condition variables
     condvars: Vec<Condition>,
+
+    /// number of threads waiting on the condition
+    next_count: usize,
 }
 
 // Implementing Send and Sync for SemaphoreMonitor
@@ -171,53 +172,51 @@ impl SemaphoreMonitor {
 
         SemaphoreMonitor {
             mutex: BinarySemaphore::new(1),
-            sem_enter: BinarySemaphore::new(0),
-            sem_urgent: BinarySemaphore::new(0),
-            urgent_count: 0,
+            enter_queue: BinarySemaphore::new(0),
             condvars,
+            next_count: 0,
         }
     }
 }
 
 impl Monitor for SemaphoreMonitor {
     fn enter(&mut self) {
-        if self.urgent_count > 0 {
-            self.sem_enter.P_wait();
-        }
         self.mutex.P_wait();
     }
 
     fn leave(&mut self) {
-        if self.urgent_count > 0 {
-            self.urgent_count -= 1;
-            self.sem_urgent.V_signal();
+        if self.next_count > 0 {
+            self.enter_queue.V_signal();
         } else {
             self.mutex.V_signal();
         }
     }
 
     fn wait(&mut self, condition: usize) {
-        let cv = self.condvars.get_mut(condition).unwrap();
+        let cv = &mut self.condvars[condition];
         cv.waiting += 1;
-
-        if self.urgent_count > 0 {
-            self.sem_urgent.V_signal();
+        // Upon waiting, release the monitor.
+        if self.next_count > 0 {
+            self.enter_queue.V_signal();
         } else {
             self.mutex.V_signal();
         }
-        
+        // Block on the condition variable's semaphore.
         cv.sem.P_wait();
         cv.waiting -= 1;
+        // When this thread resumes, it continues inside the monitor.
     }
 
     fn signal(&mut self, condition: usize) {
-        let cv = self.condvars.get_mut(condition).unwrap();
-
+        let cv = &mut self.condvars[condition];
         if cv.waiting > 0 {
-            self.urgent_count += 1;
+            self.next_count += 1;
             cv.sem.V_signal();
-            self.sem_urgent.P_wait();
+            // Wait for the signalled thread to re-enter the monitor.
+            self.enter_queue.P_wait();
+            self.next_count -= 1;
         }
+        // If no thread is waiting, do nothing.
     }
 }
 

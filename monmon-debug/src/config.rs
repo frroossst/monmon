@@ -14,8 +14,8 @@ impl Config {
     pub fn new(config: ConfigKind) -> Self {
         match config {
             ConfigKind::Fast => Config {
-                num_producer: 10,
-                per_producer: 100,
+                num_producer: 5,
+                per_producer: 50,
             },
             ConfigKind::Medium => Config {
                 num_producer: 50,
