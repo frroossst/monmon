@@ -1,0 +1,16 @@
+cargo-features = ["codegen-backend"]
+
+[workspace]
+members = [
+    "monmon-impl",
+    "monmon-debug",
+]
+default-members = ["monmon-debug"]
+
+resolver = "2"
+
+[profile.dev]
+debug = "full"
+opt-level = 0
+codegen-backend = "cranelift"
+

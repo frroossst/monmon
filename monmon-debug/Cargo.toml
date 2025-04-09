@@ -1,0 +1,8 @@
+[package]
+name = "monmon-debug"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+monmon-impl = { path = "../monmon-impl", version="^0.*" }
+
