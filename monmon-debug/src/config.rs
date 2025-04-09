@@ -10,7 +10,6 @@ pub enum ConfigKind {
 }
 
 impl Config {
-
     pub fn new(config: ConfigKind) -> Self {
         match config {
             ConfigKind::Fast => Config {
@@ -27,5 +26,4 @@ impl Config {
             },
         }
     }
-
 }

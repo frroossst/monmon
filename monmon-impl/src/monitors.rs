@@ -1,8 +1,6 @@
 use std::cell::UnsafeCell;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-
-
 /*
  * ############################################################################
  * #                                                                          #
@@ -33,7 +31,8 @@ impl BinarySemaphore {
                 }
                 current = self.count.load(Ordering::Relaxed);
             }
-            if self.count
+            if self
+                .count
                 .compare_exchange(current, current - 1, Ordering::Acquire, Ordering::Relaxed)
                 .is_ok()
             {
@@ -47,7 +46,6 @@ impl BinarySemaphore {
         self.count.fetch_add(1, Ordering::Release);
     }
 }
-
 
 /*
  * ############################################################################
@@ -136,22 +134,29 @@ impl SharedMonitor {
     }
     pub fn enter(&self) {
         #[allow(clippy::needless_borrow)]
-        unsafe { (&mut *self.monitor.get()).enter(); }
+        unsafe {
+            (&mut *self.monitor.get()).enter();
+        }
     }
     pub fn leave(&self) {
         #[allow(clippy::needless_borrow)]
-        unsafe { (&mut *self.monitor.get()).leave(); }
+        unsafe {
+            (&mut *self.monitor.get()).leave();
+        }
     }
     pub fn wait(&self, condition: usize) {
         #[allow(clippy::needless_borrow)]
-        unsafe { (&mut *self.monitor.get()).wait(condition); }
+        unsafe {
+            (&mut *self.monitor.get()).wait(condition);
+        }
     }
     pub fn signal(&self, condition: usize) {
         #[allow(clippy::needless_borrow)]
-        unsafe { (&mut *self.monitor.get()).signal(condition); }
+        unsafe {
+            (&mut *self.monitor.get()).signal(condition);
+        }
     }
 }
-
 
 /*
  * ====================================================================================================================
@@ -252,6 +257,6 @@ impl Monitor for SemaphoreMonitor {
 
 impl Synchronised for SemaphoreMonitor {
     fn increment(&mut self, _condition: usize) {
-       unimplemented!();
+        unimplemented!();
     }
 }
