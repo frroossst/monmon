@@ -253,19 +253,19 @@ fn race(racekind: RaceKind, config: Arc<Config>) {
     let start = std::time::Instant::now();
     let result = match racekind {
         RaceKind::Unsafe => {
-            unsafe_multi_threaded_accumulator(config)
+            std::hint::black_box(unsafe_multi_threaded_accumulator(config))
         },
         RaceKind::SemaphoreMonitor => {
-            sem_monitor_multi_threaded_accumulator(config)
+            std::hint::black_box(sem_monitor_multi_threaded_accumulator(config))
         },
         RaceKind::StdlibMutex => {
-            stdblib_mutex_multi_threaded_accumulator(config)
+            std::hint::black_box(stdblib_mutex_multi_threaded_accumulator(config))
         },
         RaceKind::BinarySemaphore => {
-            binary_semaphore_multi_threaded_accumulator(config)
+            std::hint::black_box(binary_semaphore_multi_threaded_accumulator(config))
         },
         RaceKind::HappyLock => {
-            happylock_multi_threaded_accumulator(config)
+            std::hint::black_box(happylock_multi_threaded_accumulator(config))
         },
     };
 
