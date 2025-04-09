@@ -9,11 +9,13 @@ use std::sync::atomic::{AtomicUsize, Ordering};
  * ############################################################################
  */
 #[derive(Debug)]
+/// A binary semaphore implementation using atomic operations
 pub struct BinarySemaphore {
     count: AtomicUsize,
 }
 
 impl BinarySemaphore {
+    /// Creates a new binary semaphore with the given initial value.
     pub const fn new(initial: usize) -> Self {
         BinarySemaphore {
             count: AtomicUsize::new(initial),
@@ -21,6 +23,7 @@ impl BinarySemaphore {
     }
 
     #[allow(non_snake_case)]
+    /// Wait operation (P operation) on the semaphore.
     pub fn P_wait(&self) {
         loop {
             let mut current = self.count.load(Ordering::Relaxed);
@@ -42,22 +45,12 @@ impl BinarySemaphore {
     }
 
     #[allow(non_snake_case)]
+    /// Signal operation (V operation) on the semaphore.
     pub fn V_signal(&self) {
         self.count.fetch_add(1, Ordering::Release);
     }
 }
 
-/*
- * ############################################################################
- * #                                                                          #
- * # Specific synchronised traits custom for each monitor                     #
- * #                                                                          #
- * ############################################################################
- */
-/// this is typically where user code goes which runs _inside_ the monitor
-pub trait Synchronised {
-    fn increment(&mut self, condition: usize);
-}
 
 /*
  * ############################################################################
@@ -75,7 +68,9 @@ pub trait Monitor {
     fn notify(&mut self, _condition: usize) {
         unimplemented!()
     }
-    // fn broadcast();
+    fn broadcast(&mut self, _condition: usize) {
+        unimplemented!()
+    }
 }
 
 /*
@@ -87,7 +82,6 @@ pub trait Monitor {
  */
 pub enum MonitorKind {
     Semaphore,
-    RustStdlib,
     InterProcessCommunication,
 }
 
@@ -96,31 +90,6 @@ pub struct SharedMonitor {
 }
 
 unsafe impl Sync for SharedMonitor {}
-
-/*
-impl SharedMonitor {
-    pub fn new(kind: MonitorKind, num_conds: usize) -> Self {
-        let mon = match kind {
-            MonitorKind::Semaphore => {
-                SemaphoreMonitor::new(num_conds)
-            }
-            _ => unimplemented!(),
-        };
-
-        SharedMonitor {
-            monitor: UnsafeCell::new(Box::new(mon)),
-        }
-    }
-
-    pub fn with_monitor<F>(&self, f: F)
-    where
-        F: FnOnce(&mut SemaphoreMonitor),
-    {
-        unsafe {
-            f(&mut *(self.monitor.get() as *mut SemaphoreMonitor));
-        }
-    }
-} */
 
 impl SharedMonitor {
     pub fn new(kind: MonitorKind, num_conds: usize) -> Self {
@@ -252,11 +221,5 @@ impl Monitor for SemaphoreMonitor {
             self.next_count -= 1;
         }
         // If no thread is waiting, do nothing.
-    }
-}
-
-impl Synchronised for SemaphoreMonitor {
-    fn increment(&mut self, _condition: usize) {
-        unimplemented!();
     }
 }
