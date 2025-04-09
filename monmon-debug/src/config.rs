@@ -18,12 +18,12 @@ impl Config {
                 per_producer: 100,
             },
             ConfigKind::Medium => Config {
-                num_producer: 25,
-                per_producer: 100,
+                num_producer: 50,
+                per_producer: 500,
             },
             ConfigKind::Slow => Config {
                 num_producer: 101,
-                per_producer: 100,
+                per_producer: 1000,
             },
         }
     }

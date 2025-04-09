@@ -4,8 +4,18 @@ use std::cell::UnsafeCell;
 use std::fmt::Debug;
 use colored::Colorize;
 
-use monmon_debug::config::Config;
+use monmon_debug::config::{Config, ConfigKind};
 use monmon_impl::monitors::{MonitorKind, Monitor, SharedMonitor};
+
+
+enum RaceKind {
+    Unsafe,
+    StdlibMutex,
+    Semaphore,
+    HappyLock,
+    SemaphoreMonitor,
+}
+
 
 #[derive(Debug)]
 struct RaceCondition {
@@ -46,12 +56,42 @@ impl UnsafeSharedAccumulator {
     }
 }
 
-fn monitor_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition> {
-    println!("{}", "monitor_multi_threaded_accumulator()".to_string().cyan());
+fn unsafe_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition> {
+    println!("{}", "unsafe_multi_threaded_accumulator()".to_string().cyan()); 
     let counter = Arc::new(UnsafeSharedAccumulator::new());
     let mut handles = vec![];
 
-    let monitor = Arc::new(SharedMonitor::new(MonitorKind::Semaphore, 1));
+
+    for _ in 0..config.num_producer {
+        let accum = counter.clone();
+        let config = config.clone();
+        let handle = thread::spawn(move || {
+            for _ in 0..config.per_producer {
+
+                    { // critical section
+                        accum.increment();
+                    } // end critical section
+            }
+        });
+        handles.push(handle);
+    }
+
+    // Join all producer threads
+    for handle in handles {
+        handle.join().unwrap();
+    }
+
+    let expected = config.num_producer * config.per_producer;
+    let race = RaceCondition::new(expected,  counter.get());
+    Box::new(race)
+}
+
+fn stdblib_mutex_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition> {
+    println!("{}", "stdlib_mutex_multi_threaded_accumulator()".to_string().cyan());
+    let counter = Arc::new(UnsafeSharedAccumulator::new());
+    let mut handles = vec![];
+
+    let monitor = Arc::new(Mutex::new(()));
 
     for _ in 0..config.num_producer {
         let accum = counter.clone();
@@ -62,14 +102,8 @@ fn monitor_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition>
 
                 // unsafe {
                     { // critical section
-                    monitor.with_monitor(|m| {
-                        m.enter();
-                        dbg!("monitor says ayo or rather mayo!");
-                        m.leave();
-                    });
-                    
-                    // Increment counter inside the critical section
-                    accum.increment();
+                        let _unused = monitor.lock().unwrap();
+                        accum.increment();
                     } // end critical section
                 // }
             }
@@ -87,26 +121,77 @@ fn monitor_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition>
     Box::new(race)
 }
 
+fn sem_monitor_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition> {
+    println!("{}", "monitor_multi_threaded_accumulator()".to_string().cyan());
+    let counter = Arc::new(UnsafeSharedAccumulator::new());
+    let mut handles = vec![];
+
+    let monitor = Arc::new(SharedMonitor::new(MonitorKind::Semaphore, 1));
+
+    for _ in 0..config.num_producer {
+        let accum = counter.clone();
+        let config = config.clone();
+        let monitor = monitor.clone();
+        let handle = thread::spawn(move || {
+            for _ in 0..config.per_producer {
+
+                // unsafe {
+                    { // critical section
+                    monitor.with_monitor(|m| {
+                        m.enter();
+                        accum.increment();
+                        m.leave();
+                    });
+                    
+                    } // end critical section
+                // }
+            }
+        });
+        handles.push(handle);
+    }
+
+    // Join all producer threads
+    for handle in handles {
+        handle.join().unwrap();
+    }
+
+    let expected = config.num_producer * config.per_producer;
+    let race = RaceCondition::new(expected,  counter.get());
+    Box::new(race)
+}
+
+
+
+fn race(racekind: RaceKind, config: Arc<Config>) {
+
+    let result = match racekind {
+        RaceKind::Unsafe => {
+            unsafe_multi_threaded_accumulator(config)
+        },
+        RaceKind::StdlibMutex => {
+            stdblib_mutex_multi_threaded_accumulator(config)
+        },
+        RaceKind::SemaphoreMonitor => {
+            sem_monitor_multi_threaded_accumulator(config)
+        },
+        _ => unimplemented!()
+    };
+
+    if result.expected != result.actual {
+        print!("{}", "[RACE CONDITION] ".red());
+        println!("Expected: {}, Actual: {}", result.expected, result.actual);
+        println!("Difference: {}", result.expected - result.actual);
+    } else {
+        println!("{}", "[NO RACE]".green());
+    }
+}
+
 fn main() {
 
-    let config = Arc::new(Config {
-        num_producer: 10,
-        per_producer: 1000,
-        // Add any other required fields from Config struct
-    });
+    let config = Arc::new(Config::new(ConfigKind::Slow));
 
-    // Run the test and get the race condition result
-    let race_result = monitor_multi_threaded_accumulator(config);
+    race(RaceKind::Unsafe, config.clone());
+    race(RaceKind::StdlibMutex, config.clone());
     
-    println!("Expected sum: {}", race_result.expected);
-    println!("Actual sum: {}", race_result.actual);
-    
-    // Check if a race condition occurred
-    if race_result.expected == race_result.actual {
-        println!("{}", "No race condition detected! The monitor is working correctly.".green());
-    } else {
-        println!("{}", "Race condition detected! The monitor failed to protect the shared resource.".red());
-        println!("Difference: {} values missing", race_result.expected - race_result.actual);
-    }
 
 }

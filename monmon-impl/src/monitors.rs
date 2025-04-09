@@ -1,25 +1,45 @@
 use std::cell::UnsafeCell;
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::thread::yield_now;
 
 
 #[derive(Debug)]
 pub struct BinarySemaphore {
-    value: usize,
+    value: AtomicUsize,
 }
 
 impl BinarySemaphore {
     pub fn new(value: usize) -> Self {
-        BinarySemaphore { value }
+        BinarySemaphore { value: AtomicUsize::new(value) }
     }
 
     #[allow(non_snake_case)]
-    pub fn P_wait(&mut self) {
-        while self.value == 0 {}
-        self.value -= 1;
+    pub fn P_wait(&self) {
+        // Spin until we can decrement the semaphore
+        while self.value.load(Ordering::SeqCst) == 0 {
+            // Yield to other threads instead of busy-waiting
+            yield_now();
+        }
+        
+        // Try to decrement the value atomically
+        // Keep trying until we succeed
+        let mut current = self.value.load(Ordering::SeqCst);
+        while current > 0 {
+            match self.value.compare_exchange(
+                current,
+                current - 1,
+                Ordering::SeqCst,
+                Ordering::SeqCst,
+            ) {
+                Ok(_) => return, // Successfully decremented
+                Err(actual) => current = actual, // Try again with the new value
+            }
+        }
     }
 
     #[allow(non_snake_case)]
-    pub fn V_signal(&mut self) {
-        self.value += 1;
+    pub fn V_signal(&self) {
+        self.value.fetch_add(1, Ordering::SeqCst);
     }
 }
 
