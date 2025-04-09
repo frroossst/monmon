@@ -57,7 +57,7 @@ impl UnsafeSharedAccumulator {
 }
 
 fn unsafe_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition> {
-    println!("{}", "unsafe_multi_threaded_accumulator()".to_string().cyan()); 
+    println!("{}", "unsafe_multi_threaded_accumulator()".to_string().bright_cyan().italic()); 
     let counter = Arc::new(UnsafeSharedAccumulator::new());
     let mut handles = vec![];
 
@@ -87,7 +87,7 @@ fn unsafe_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition> 
 }
 
 fn stdblib_mutex_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition> {
-    println!("{}", "stdlib_mutex_multi_threaded_accumulator()".to_string().cyan());
+    println!("{}", "stdlib_mutex_multi_threaded_accumulator()".to_string().bright_cyan().italic());
     let counter = Arc::new(UnsafeSharedAccumulator::new());
     let mut handles = vec![];
 
@@ -122,7 +122,7 @@ fn stdblib_mutex_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCond
 }
 
 fn sem_monitor_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition> {
-    println!("{}", "monitor_multi_threaded_accumulator()".to_string().cyan());
+    println!("{}", "monitor_multi_threaded_accumulator()".to_string().bright_cyan().italic());
     let counter = Arc::new(UnsafeSharedAccumulator::new());
     let mut handles = vec![];
 
@@ -161,7 +161,7 @@ fn sem_monitor_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondit
 }
 
 fn binary_semaphore_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition> {
-    println!("{}", "binary_semaphore_multi_threaded_accumulator()".to_string().cyan());
+    println!("{}", "binary_semaphore_multi_threaded_accumulator()".to_string().bright_cyan().italic());
     let counter = Arc::new(UnsafeSharedAccumulator::new());
     let mut handles = vec![];
 
@@ -196,6 +196,7 @@ fn binary_semaphore_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceC
 
 fn race(racekind: RaceKind, config: Arc<Config>) {
 
+    let start = std::time::Instant::now();
     let result = match racekind {
         RaceKind::Unsafe => {
             unsafe_multi_threaded_accumulator(config)
@@ -209,13 +210,20 @@ fn race(racekind: RaceKind, config: Arc<Config>) {
         _ => unimplemented!()
     };
 
+    let elapsed = start.elapsed().as_millis();
+
     if result.expected != result.actual {
-        print!("{}", "[RACE CONDITION] ".red());
+        println!("{}", "[RACE CONDITION] ".red().bold().blink());
         println!("Expected: {}, Actual: {}", result.expected, result.actual);
-        println!("Difference: {}", result.expected - result.actual);
+        println!("Missing items: {}", format!("{}", result.expected - result.actual).bright_white().italic());
+        println!("{}", format!("{} ms", elapsed).yellow());
     } else {
-        println!("{}", "[NO RACE]".green());
+        println!("{}", "[NO RACE]".bright_green().bold());
+        println!("{}", format!("{} ms", elapsed).yellow());
     }
+
+    println!("==========================");
+    println!();
 }
 
 fn main() {

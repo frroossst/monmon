@@ -1,9 +1,15 @@
 use std::cell::UnsafeCell;
 use std::sync::atomic::{AtomicUsize, Ordering};
-use std::thread::yield_now;
 
 
 
+/*
+ * ############################################################################
+ * #                                                                          #
+ * # Atomic Binary Semaphore                                                  #
+ * #                                                                          #
+ * ############################################################################
+ */
 #[derive(Debug)]
 pub struct BinarySemaphore {
     count: AtomicUsize,
@@ -16,6 +22,7 @@ impl BinarySemaphore {
         }
     }
 
+    #[allow(non_snake_case)]
     pub fn P_wait(&self) {
         loop {
             let mut current = self.count.load(Ordering::Relaxed);
@@ -35,6 +42,7 @@ impl BinarySemaphore {
         }
     }
 
+    #[allow(non_snake_case)]
     pub fn V_signal(&self) {
         self.count.fetch_add(1, Ordering::Release);
     }
@@ -215,6 +223,6 @@ impl Monitor for SemaphoreMonitor {
 
 impl Synchronised for SemaphoreMonitor {
     fn increment(&mut self, _condition: usize) {
-       unimplemented!() ;
+       unimplemented!();
     }
 }
