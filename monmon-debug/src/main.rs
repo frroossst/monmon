@@ -5,8 +5,8 @@ use std::cell::UnsafeCell;
 use std::fmt::Debug;
 use colored::Colorize;
 
-use monmon_debug::config::{self, Config, ConfigKind};
-use monmon_impl::monitors::{BinarySemaphore, Monitor, MonitorKind, SharedMonitor};
+use monmon_debug::config::{Config, ConfigKind};
+use monmon_impl::monitors::{BinarySemaphore, MonitorKind, SharedMonitor};
 
 
 
@@ -286,7 +286,6 @@ fn race(racekind: RaceKind, config: Arc<Config>) {
 }
 
 fn main() {
-
     let config = Arc::new(Config::new(ConfigKind::Fast));
 
     race(RaceKind::Unsafe, config.clone());
