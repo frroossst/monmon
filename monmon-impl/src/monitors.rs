@@ -3,43 +3,40 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::thread::yield_now;
 
 
+
 #[derive(Debug)]
 pub struct BinarySemaphore {
-    value: AtomicUsize,
+    count: AtomicUsize,
 }
 
 impl BinarySemaphore {
-    pub fn new(value: usize) -> Self {
-        BinarySemaphore { value: AtomicUsize::new(value) }
+    pub const fn new(initial: usize) -> Self {
+        BinarySemaphore {
+            count: AtomicUsize::new(initial),
+        }
     }
 
-    #[allow(non_snake_case)]
     pub fn P_wait(&self) {
-        // Spin until we can decrement the semaphore
-        while self.value.load(Ordering::SeqCst) == 0 {
-            // Yield to other threads instead of busy-waiting
-            yield_now();
-        }
-        
-        // Try to decrement the value atomically
-        // Keep trying until we succeed
-        let mut current = self.value.load(Ordering::SeqCst);
-        while current > 0 {
-            match self.value.compare_exchange(
-                current,
-                current - 1,
-                Ordering::SeqCst,
-                Ordering::SeqCst,
-            ) {
-                Ok(_) => return, // Successfully decremented
-                Err(actual) => current = actual, // Try again with the new value
+        loop {
+            let mut current = self.count.load(Ordering::Relaxed);
+            while current <= 0 {
+                for _ in 0..10_000 {
+                    // crude delay
+                    let _ = self.count.load(Ordering::Relaxed);
+                }
+                current = self.count.load(Ordering::Relaxed);
+            }
+            if self.count
+                .compare_exchange(current, current - 1, Ordering::Acquire, Ordering::Relaxed)
+                .is_ok()
+            {
+                break;
             }
         }
     }
 
-    #[allow(non_snake_case)]
     pub fn V_signal(&self) {
-        self.value.fetch_add(1, Ordering::SeqCst);
+        self.count.fetch_add(1, Ordering::Release);
     }
 }
 

@@ -5,13 +5,13 @@ use std::fmt::Debug;
 use colored::Colorize;
 
 use monmon_debug::config::{Config, ConfigKind};
-use monmon_impl::monitors::{MonitorKind, Monitor, SharedMonitor};
+use monmon_impl::monitors::{BinarySemaphore, Monitor, MonitorKind, SharedMonitor};
 
 
 enum RaceKind {
     Unsafe,
     StdlibMutex,
-    Semaphore,
+    BinarySemaphore,
     HappyLock,
     SemaphoreMonitor,
 }
@@ -160,6 +160,38 @@ fn sem_monitor_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondit
     Box::new(race)
 }
 
+fn binary_semaphore_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition> {
+    println!("{}", "binary_semaphore_multi_threaded_accumulator()".to_string().cyan());
+    let counter = Arc::new(UnsafeSharedAccumulator::new());
+    let mut handles = vec![];
+
+    let monitor = Arc::new(BinarySemaphore::new(1));
+
+    for _ in 0..config.num_producer {
+        let accum = counter.clone();
+        let config = config.clone();
+        let monitor = monitor.clone();
+        let handle = thread::spawn(move || {
+            for _ in 0..config.per_producer {
+                { // critical section
+                    monitor.P_wait();
+                    accum.increment();
+                    monitor.V_signal();
+                } // end critical section
+            }
+        });
+        handles.push(handle);
+    }
+
+    // Join all producer threads
+    for handle in handles {
+        handle.join().unwrap();
+    }
+
+    let expected = config.num_producer * config.per_producer;
+    let race = RaceCondition::new(expected,  counter.get());
+    Box::new(race)
+}
 
 
 fn race(racekind: RaceKind, config: Arc<Config>) {
@@ -171,8 +203,8 @@ fn race(racekind: RaceKind, config: Arc<Config>) {
         RaceKind::StdlibMutex => {
             stdblib_mutex_multi_threaded_accumulator(config)
         },
-        RaceKind::SemaphoreMonitor => {
-            sem_monitor_multi_threaded_accumulator(config)
+        RaceKind::BinarySemaphore => {
+            binary_semaphore_multi_threaded_accumulator(config)
         },
         _ => unimplemented!()
     };
@@ -192,6 +224,7 @@ fn main() {
 
     race(RaceKind::Unsafe, config.clone());
     race(RaceKind::StdlibMutex, config.clone());
+    race(RaceKind::BinarySemaphore, config.clone());
     
 
 }
