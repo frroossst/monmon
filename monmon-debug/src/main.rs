@@ -1,4 +1,3 @@
-use monmon_debug::logger::ProgressBar;
 use rand::Rng;
 use std::sync::{Arc, Mutex};
 use std::thread;
