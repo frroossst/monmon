@@ -1,12 +1,8 @@
 use colored::Colorize;
-use std::cell::UnsafeCell;
-use std::fmt::Debug;
-use std::sync::{Arc, Mutex};
-use std::thread;
+use std::sync::Arc;
 
 use monmon_debug::accumulators::*;
 use monmon_debug::config::{Config, ConfigKind};
-use monmon_impl::monitors::{BinarySemaphore, MonitorKind, SharedMonitor};
 
 enum RaceKind {
     Unsafe,
@@ -55,7 +51,7 @@ fn race(racekind: RaceKind, config: Arc<Config>) {
 
 fn main() {
     let mut args = std::env::args();
-    let _program = args.next().expect("program name");
+    let _program = args.next().expect("program name expected");
 
     let mode = args.next().unwrap_or("fast".into());
     let config = match mode.as_str() {

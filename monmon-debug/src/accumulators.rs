@@ -17,6 +17,12 @@ pub struct UnsafeSharedAccumulator {
 unsafe impl Send for UnsafeSharedAccumulator {}
 unsafe impl Sync for UnsafeSharedAccumulator {}
 
+impl Default for UnsafeSharedAccumulator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl UnsafeSharedAccumulator {
     pub fn new() -> Self {
         UnsafeSharedAccumulator {
@@ -46,7 +52,7 @@ pub fn unsafe_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceConditi
             .bright_cyan()
             .italic()
     );
-    let counter = Arc::new(UnsafeSharedAccumulator::new());
+    let counter = Arc::new(UnsafeSharedAccumulator::default());
     let mut handles = vec![];
 
     for _ in 0..config.num_producer {
@@ -81,7 +87,7 @@ pub fn stdblib_mutex_multi_threaded_accumulator(config: Arc<Config>) -> Box<Race
             .bright_cyan()
             .italic()
     );
-    let counter = Arc::new(UnsafeSharedAccumulator::new());
+    let counter = Arc::new(UnsafeSharedAccumulator::default());
     let mut handles = vec![];
 
     let monitor = Arc::new(Mutex::new(()));
@@ -122,7 +128,7 @@ pub fn sem_monitor_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCo
             .bright_cyan()
             .italic()
     );
-    let counter = Arc::new(UnsafeSharedAccumulator::new());
+    let counter = Arc::new(UnsafeSharedAccumulator::default());
     let mut handles = vec![];
 
     let monitor = Arc::new(SharedMonitor::new(MonitorKind::Semaphore, 1));
@@ -162,7 +168,7 @@ pub fn binary_semaphore_multi_threaded_accumulator(config: Arc<Config>) -> Box<R
             .bright_cyan()
             .italic()
     );
-    let counter = Arc::new(UnsafeSharedAccumulator::new());
+    let counter = Arc::new(UnsafeSharedAccumulator::default());
     let mut handles = vec![];
 
     let monitor = Arc::new(BinarySemaphore::new(1));
@@ -202,7 +208,7 @@ pub fn happylock_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCond
             .bright_cyan()
             .italic()
     );
-    let counter = Arc::new(UnsafeSharedAccumulator::new());
+    let counter = Arc::new(UnsafeSharedAccumulator::default());
     let mut handles = vec![];
 
     let monitor = Arc::new(happylock::Mutex::new(()));
