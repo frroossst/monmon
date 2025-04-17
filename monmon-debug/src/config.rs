@@ -45,4 +45,3 @@ impl RaceCondition {
         RaceCondition { expected, actual }
     }
 }
-

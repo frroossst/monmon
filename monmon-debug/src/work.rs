@@ -1,5 +1,5 @@
-use std::thread;
 use rand::Rng;
+use std::thread;
 
 pub fn do_something() {
     // either randomly sleep, busy wait, or do nothing
