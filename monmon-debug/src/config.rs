@@ -33,3 +33,16 @@ impl Config {
         }
     }
 }
+
+#[derive(Debug)]
+pub struct RaceCondition {
+    pub expected: usize,
+    pub actual: usize,
+}
+
+impl RaceCondition {
+    pub fn new(expected: usize, actual: usize) -> Self {
+        RaceCondition { expected, actual }
+    }
+}
+
