@@ -1,3 +1,7 @@
+use core::fmt;
+
+use colored::Colorize;
+
 #[derive(Debug)]
 pub struct Config {
     _mode: ConfigKind,
@@ -34,7 +38,6 @@ impl Config {
     }
 }
 
-#[derive(Debug)]
 pub struct RaceCondition {
     pub expected: usize,
     pub actual: usize,
@@ -43,5 +46,24 @@ pub struct RaceCondition {
 impl RaceCondition {
     pub fn new(expected: usize, actual: usize) -> Self {
         RaceCondition { expected, actual }
+    }
+}
+
+impl fmt::Debug for RaceCondition {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.expected != self.actual {
+            writeln!(f, "{}", "[RACE CONDITION]".red().bold().blink())?;
+            writeln!(f, "Expected: {}, Actual: {}", self.expected, self.actual)?;
+            writeln!(
+                f,
+                "Missing items: {}",
+                format!("{}", self.expected.saturating_sub(self.actual))
+                    .bright_white()
+                    .italic()
+            )?;
+        } else {
+            writeln!(f, "{}", "[NO RACE]".bright_green().bold())?;
+        }
+        Ok(())
     }
 }

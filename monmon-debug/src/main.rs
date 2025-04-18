@@ -1,4 +1,6 @@
 use colored::Colorize;
+use monmon_impl::monitors::{MonitorKind, SharedMonitor};
+use std::cell::UnsafeCell;
 use std::sync::Arc;
 
 use monmon_debug::accumulators::*;
@@ -28,26 +30,15 @@ fn race(racekind: RaceKind, config: Arc<Config>) {
         RaceKind::HappyLock => std::hint::black_box(happylock_multi_threaded_accumulator(config)),
     };
 
-    let elapsed = start.elapsed().as_millis();
+    print!("{:?}", result);
 
-    if result.expected != result.actual {
-        println!("{}", "[RACE CONDITION] ".red().bold().blink());
-        println!("Expected: {}, Actual: {}", result.expected, result.actual);
-        println!(
-            "Missing items: {}",
-            format!("{}", result.expected - result.actual)
-                .bright_white()
-                .italic()
-        );
-        println!("{}", format!("{} ms", elapsed).yellow());
-    } else {
-        println!("{}", "[NO RACE]".bright_green().bold());
-        println!("{}", format!("{} ms", elapsed).yellow());
-    }
+    let elapsed = start.elapsed().as_millis();
+    println!("{}", format!("{} ms", elapsed).yellow());
 
     println!("==========================");
     println!();
 }
+
 
 fn main() {
     let mut args = std::env::args();
