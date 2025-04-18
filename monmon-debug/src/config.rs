@@ -38,18 +38,26 @@ impl Config {
     }
 }
 
-pub struct RaceCondition {
-    pub expected: usize,
-    pub actual: usize,
+use num_traits::{Zero, SaturatingSub};
+
+pub struct RaceCondition<T> {
+    pub expected: T,
+    pub actual: T,
 }
 
-impl RaceCondition {
-    pub fn new(expected: usize, actual: usize) -> Self {
+impl<T> RaceCondition<T>
+where
+    T: Copy,
+{
+    pub fn new(expected: T, actual: T) -> Self {
         RaceCondition { expected, actual }
     }
 }
 
-impl fmt::Debug for RaceCondition {
+impl<T> fmt::Debug for RaceCondition<T>
+where
+    T: fmt::Display + PartialEq + SaturatingSub + Copy + Zero,
+{
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.expected != self.actual {
             writeln!(f, "{}", "[RACE CONDITION]".red().bold().blink())?;
@@ -57,7 +65,8 @@ impl fmt::Debug for RaceCondition {
             writeln!(
                 f,
                 "Missing items: {}",
-                format!("{}", self.expected.saturating_sub(self.actual))
+                self.expected.saturating_sub(&self.actual)
+                    .to_string()
                     .bright_white()
                     .italic()
             )?;

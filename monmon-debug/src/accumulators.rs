@@ -44,7 +44,7 @@ impl UnsafeSharedAccumulator {
     }
 }
 
-pub fn unsafe_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition> {
+pub fn unsafe_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition<usize>> {
     println!(
         "{}",
         "unsafe_multi_threaded_accumulator()"
@@ -79,7 +79,7 @@ pub fn unsafe_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceConditi
     Box::new(race)
 }
 
-pub fn stdblib_mutex_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition> {
+pub fn stdblib_mutex_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition<usize>> {
     println!(
         "{}",
         "stdlib_mutex_multi_threaded_accumulator()"
@@ -120,7 +120,7 @@ pub fn stdblib_mutex_multi_threaded_accumulator(config: Arc<Config>) -> Box<Race
     Box::new(race)
 }
 
-pub fn sem_monitor_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition> {
+pub fn sem_monitor_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition<usize>> {
     println!(
         "{}",
         "monitor_multi_threaded_accumulator()"
@@ -160,7 +160,7 @@ pub fn sem_monitor_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCo
     Box::new(race)
 }
 
-pub fn binary_semaphore_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition> {
+pub fn binary_semaphore_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition<usize>> {
     println!(
         "{}",
         "binary_semaphore_multi_threaded_accumulator()"
@@ -200,7 +200,7 @@ pub fn binary_semaphore_multi_threaded_accumulator(config: Arc<Config>) -> Box<R
     Box::new(race)
 }
 
-pub fn happylock_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition> {
+pub fn happylock_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition<usize>> {
     println!(
         "{}",
         "happylock_multi_threaded_accumulator()"
