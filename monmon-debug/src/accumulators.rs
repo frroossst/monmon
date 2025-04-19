@@ -5,7 +5,7 @@ use std::{
 };
 
 use colored::Colorize;
-use monmon_impl::monitors::{BinarySemaphore, MonitorKind, SharedMonitor};
+use monmon_impl::{monitors::{MonitorKind, SharedMonitor}, semaphore::BinarySemaphore};
 
 use crate::config::{Config, RaceCondition};
 
