@@ -1,4 +1,6 @@
+use std::os::fd::OwnedFd;
 use std::{cell::UnsafeCell, ffi::CString, fs};
+use std::io::{stdin, stdout, Read, Write};
 
 
 use nix::libc::{mkfifo, open};
@@ -366,32 +368,24 @@ impl Monitor for SemaphoreMonitor {
  * ############################################################################
  */
 
-const SERVER_FIFO: &str = "/tmp/monmon_server_fifo";
-
 
 /// Implementing the monitor abstraction using IPC
 /// Uses Send/Receive/Reply, Send(s) are blocking 
 #[derive(Debug)]
 pub struct IPCMonitorServer {
+    tx: OwnedFd,
+    rx: OwnedFd,
 }
 
 impl IPCMonitorServer {
     pub fn new() -> Self {
-        let _ = fs::remove_file(SERVER_FIFO);
-        let server_fifo = CString::new(SERVER_FIFO).expect("should not fail").into_raw();
-
-        unsafe {
-            mkfifo(server_fifo, nix::libc::S_IRWXU);
-            open(server_fifo,nix::libc::O_RDWR);
-        }
-
+        let (tx, rx) = nix::unistd::pipe().unwrap();
 
         IPCMonitorServer {
-
+            tx,
+            rx,
         }
     }
-
-
 }
 
 pub struct IPCMonitorClient {
