@@ -38,6 +38,17 @@ pub mod tests {
         let decoded_msg = Message::decode(&encode).unwrap();
         assert_eq!(decoded_msg.sender, 6);
         assert_eq!(decoded_msg.msg, MonWait(9));
+
+
+        let msg = Message::new(86, MonSignal(10));
+
+        let (encode, bytes) = Message::encode(msg);
+        assert_eq!(encode, vec![0, 0, 0, 0, 0, 0, 0, 86, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 10]);
+        assert_eq!(bytes, 24);
+
+        let decoded_msg = Message::decode(&encode).unwrap();
+        assert_eq!(decoded_msg.sender, 86);
+        assert_eq!(decoded_msg.msg, MonSignal(10));
     }
 
 }
