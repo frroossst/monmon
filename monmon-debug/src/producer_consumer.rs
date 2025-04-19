@@ -1,7 +1,7 @@
 use std::{cell::UnsafeCell, sync::{Arc, Mutex}, thread};
 
 use colored::Colorize;
-use monmon_impl::monitors::BinarySemaphore;
+use monmon_impl::monitors::{BinarySemaphore, MonitorKind, SharedMonitor};
 
 use crate::config::{Config, RaceCondition};
 
@@ -144,6 +144,82 @@ pub fn stdlib_mutex_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondit
     }
 
     let expected: i64 = 0;
+    let race = RaceCondition::new(expected, buffer.get());
+    Box::new(race)
+}
+
+pub fn sem_monitor_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondition<i64>> {
+    println!(
+        "{}",
+        "sem_monitor_multi_threaded_buffer()"
+            .to_string()
+            .bright_cyan()
+            .italic()
+    );
+
+    // The shared buffer count, protected by the monitor
+    let buffer = Arc::new(UnsafeSharedBuffer::new());
+    let mut handles = vec![];
+
+    // Create a monitor with one condition variable:
+    // - condition 0: buffer is not empty (for consumers)
+    const BUFFER_NOT_EMPTY: usize = 0;
+    let monitor = Arc::new(SharedMonitor::new(MonitorKind::Semaphore, 1));
+
+    // Producer threads
+    for _ in 0..config.num_producer {
+        let buffer = buffer.clone();
+        let config = config.clone();
+        let monitor = monitor.clone();
+        let handle = thread::spawn(move || {
+            for _ in 0..config.per_producer {
+                // Enter monitor (acquire lock)
+                monitor.enter();
+                
+                // Produce item
+                buffer.produce();
+                
+                // Signal to any waiting consumers that buffer is not empty
+                monitor.signal(BUFFER_NOT_EMPTY);
+                
+                // Leave monitor (release lock)
+                monitor.leave();
+            }
+        });
+        handles.push(handle);
+    }
+
+    // Consumer threads
+    for _ in 0..config.num_producer {
+        let buffer = buffer.clone();
+        let config = config.clone();
+        let monitor = monitor.clone();
+        let handle = thread::spawn(move || {
+            for _ in 0..config.per_producer {
+                // Enter monitor (acquire lock)
+                monitor.enter();
+                
+                // Check if buffer is empty - if so, wait
+                if buffer.get() <= 0 {
+                    monitor.wait(BUFFER_NOT_EMPTY);
+                }
+                
+                // Consume item
+                buffer.consume();
+                
+                // Leave monitor (release lock)
+                monitor.leave();
+            }
+        });
+        handles.push(handle);
+    }
+
+    // Join all threads
+    for handle in handles {
+        handle.join().unwrap();
+    }
+
+    let expected = 0;
     let race = RaceCondition::new(expected, buffer.get());
     Box::new(race)
 }

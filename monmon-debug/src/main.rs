@@ -21,57 +21,57 @@ enum RaceKind {
 fn race(racekind: RaceKind, config: Arc<Config>) {
     let start = std::time::Instant::now();
 
-    let usizeRaceCondition: Option<RaceCondition<usize>>;
-    let i64RaceCondition: Option<RaceCondition<i64>>;
+    let mut usize_race_condition: Option<RaceCondition<usize>> = None;
+    let mut i64_race_condition: Option<RaceCondition<i64>> = None;
     
     match racekind {
         RaceKind::UnsafeAccum => {
             let r = std::hint::black_box(unsafe_multi_threaded_accumulator(config));
-            usizeRaceCondition = Some(*r);
+            usize_race_condition = Some(*r);
         }
         RaceKind::UnsafeBuffer => {
             let r = std::hint::black_box(unsafe_multi_threaded_buffer(config));
-            i64RaceCondition = Some(*r);
+            i64_race_condition = Some(*r);
         }
         RaceKind::SemaphoreMonitorAccum => {
             let r = std::hint::black_box(sem_monitor_multi_threaded_accumulator(config));
-            usizeRaceCondition = Some(*r);
+            usize_race_condition = Some(*r);
         }
         RaceKind::SemaphoreMonitorBuffer => {
             let r = std::hint::black_box(sem_monitor_multi_threaded_buffer(config));
-            i64RaceCondition = Some(*r);
+            i64_race_condition = Some(*r);
         }
         RaceKind::StdlibMutexAccum => {
             let r =std::hint::black_box(stdblib_mutex_multi_threaded_accumulator(config));
-            usizeRaceCondition = Some(*r);
+            usize_race_condition = Some(*r);
         }
         RaceKind::StdlibMutexBuffer => {
             let r = std::hint::black_box(stdlib_mutex_multi_threaded_buffer(config));
-            i64RaceCondition = Some(*r);
+            i64_race_condition = Some(*r);
         }
         RaceKind::BinarySemaphoreAccum => {
             let r = std::hint::black_box(binary_semaphore_multi_threaded_accumulator(config));
-            usizeRaceCondition = Some(*r);
+            usize_race_condition = Some(*r);
         }
         RaceKind::BinarySemaphoreBuffer => {
             let r = std::hint::black_box(binary_semaphore_multi_threaded_buffer(config));
-            i64RaceCondition = Some(*r);
+            i64_race_condition = Some(*r);
         }
         RaceKind::HappyLockAccum => {
             let r = std::hint::black_box(happylock_multi_threaded_accumulator(config));
-            usizeRaceCondition = Some(*r);
+            usize_race_condition = Some(*r);
         }
         RaceKind::HappyLockBuffer => {
             let r = std::hint::black_box(happylock_multi_threaded_buffer(config));
-            i64RaceCondition = Some(*r);
+            i64_race_condition = Some(*r);
         }
     };
 
-    if usizeRaceCondition.is_some() {
-        let result = usizeRaceCondition.unwrap();
+    if usize_race_condition.is_some() {
+        let result = usize_race_condition.unwrap();
         print!("{:?}", result);
-    } else if i64RaceCondition.is_some() {
-        let result = i64RaceCondition.unwrap();
+    } else if i64_race_condition.is_some() {
+        let result = i64_race_condition.unwrap();
         print!("{:?}", result);
     } else {
         unreachable!("both races are None!!!");
@@ -100,12 +100,14 @@ fn main() {
 
     let config = Arc::new(config);
 
-    let a = stdlib_mutex_multi_threaded_buffer(config.clone());
-    println!("{:?}", a);
-
     race(RaceKind::UnsafeAccum, config.clone());
+    race(RaceKind::UnsafeBuffer, config.clone());
     race(RaceKind::SemaphoreMonitorAccum, config.clone());
+    race(RaceKind::SemaphoreMonitorBuffer, config.clone());
     race(RaceKind::StdlibMutexAccum, config.clone());
+    race(RaceKind::StdlibMutexBuffer, config.clone());
     race(RaceKind::BinarySemaphoreAccum, config.clone());
+    race(RaceKind::BinarySemaphoreBuffer, config.clone());
     race(RaceKind::HappyLockAccum, config.clone());
+    race(RaceKind::HappyLockBuffer, config.clone());
 }
