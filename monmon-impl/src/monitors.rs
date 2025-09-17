@@ -3,6 +3,7 @@ use std::cell::UnsafeCell;
 
 
 
+use crate::condition_variables::Condition;
 use crate::message::{Message, MonMessage, MESSAGE_SIZE};
 use crate::semaphore::BinarySemaphore;
 
@@ -40,6 +41,7 @@ pub trait Monitor {
 pub enum MonitorKind {
     Semaphore,
     InterProcessCommunication,
+    Futex,
 }
 
 pub struct SharedMonitor {
@@ -52,6 +54,7 @@ impl SharedMonitor {
     pub fn new(kind: MonitorKind, num_conds: usize) -> Self {
         let mon: Box<dyn Monitor + Send> = match kind {
             MonitorKind::Semaphore => Box::new(SemaphoreMonitor::new(num_conds)),
+            MonitorKind::Futex => Box::new(FutexMonitor::new(num_conds)),
             _ => unimplemented!(),
         };
         SharedMonitor {
@@ -95,11 +98,6 @@ impl SharedMonitor {
  * ############################################################################
  */
 
-#[derive(Debug)]
-pub struct Condition {
-    waiting: usize,
-    sem: BinarySemaphore,
-}
 
 /// Implementing the monitor abstraction using semaphores
 #[derive(Debug)]
@@ -123,10 +121,7 @@ impl SemaphoreMonitor {
     pub fn new(num_conds: usize) -> Self {
         let mut condvars: Vec<Condition> = Vec::with_capacity(num_conds);
         for _cv in 0..num_conds {
-            let condition = Condition {
-                waiting: 0,
-                sem: BinarySemaphore::new(0),
-            };
+            let condition = Condition::default();
             condvars.push(condition);
         }
 
@@ -259,6 +254,240 @@ impl Monitor for SemaphoreMonitor {
 /*
  * ############################################################################
  * #                                                                          #
+ * # Monitor implementation Futex                                             #
+ * #                                                                          #
+ * ############################################################################
+ */
+use atomic_wait::{wait, wake_one, wake_all};
+use std::sync::atomic::{AtomicU32, Ordering};
+
+/// A condition variable implementation using futexes
+#[derive(Debug)]
+pub struct FutexCondition {
+    /// Number of threads waiting on this condition
+    waiting: AtomicU32,
+    /// Futex word for this condition variable
+    futex_word: AtomicU32,
+}
+
+impl FutexCondition {
+    pub fn new() -> Self {
+        FutexCondition {
+            waiting: AtomicU32::new(0),
+            futex_word: AtomicU32::new(0),
+        }
+    }
+
+    /// Wait on this condition variable
+    pub fn wait(&self) {
+        // Increment waiting count
+        self.waiting.fetch_add(1, Ordering::AcqRel);
+        
+        // Get current futex value
+        let current_val = self.futex_word.load(Ordering::Acquire);
+        
+        // Wait on the futex
+        wait(&self.futex_word, current_val);
+        
+        // We've been woken up, decrement waiting count
+        self.waiting.fetch_sub(1, Ordering::AcqRel);
+    }
+
+    /// Signal one waiting thread
+    pub fn signal(&self) -> bool {
+        let waiting_count = self.waiting.load(Ordering::Acquire);
+        if waiting_count > 0 {
+            // Change the futex word value to wake waiters
+            self.futex_word.fetch_add(1, Ordering::AcqRel);
+            // Wake one waiter
+            wake_one(&self.futex_word);
+            true
+        } else {
+            false
+        }
+    }
+
+    /// Broadcast to all waiting threads
+    pub fn broadcast(&self) -> u32 {
+        let waiting_count = self.waiting.load(Ordering::Acquire);
+        if waiting_count > 0 {
+            // Change the futex word value to wake waiters
+            self.futex_word.fetch_add(1, Ordering::AcqRel);
+            // Wake all waiters
+            wake_all(&self.futex_word);
+            waiting_count
+        } else {
+            0
+        }
+    }
+
+    pub fn waiting_count(&self) -> u32 {
+        self.waiting.load(Ordering::Acquire)
+    }
+}
+
+/// Monitor implementation using futexes with Hoare semantics
+#[derive(Debug)]
+pub struct FutexMonitor {
+    /// Mutex futex word (0 = unlocked, 1 = locked)
+    mutex: AtomicU32,
+    /// Condition variables implemented with futexes
+    conditions: Vec<FutexCondition>,
+    /// Number of threads in the next queue (signaled threads waiting to re-enter)
+    next_count: AtomicU32,
+    /// Next queue futex for signaled threads
+    next_queue: AtomicU32,
+}
+
+impl FutexMonitor {
+    pub fn new(num_conditions: usize) -> Self {
+        let mut conditions = Vec::with_capacity(num_conditions);
+        for _ in 0..num_conditions {
+            conditions.push(FutexCondition::new());
+        }
+
+        FutexMonitor {
+            mutex: AtomicU32::new(0), // 0 = unlocked
+            conditions,
+            next_count: AtomicU32::new(0),
+            next_queue: AtomicU32::new(0),
+        }
+    }
+
+    /// Acquire the monitor mutex using futex
+    fn acquire_mutex(&self) {
+        loop {
+            // Try to acquire the mutex (compare_exchange from 0 to 1)
+            match self.mutex.compare_exchange_weak(0, 1, Ordering::AcqRel, Ordering::Relaxed) {
+                Ok(_) => break, // Successfully acquired
+                Err(current) => {
+                    // Mutex is locked, wait for it
+                    if current == 1 {
+                        wait(&self.mutex, 1);
+                    }
+                }
+            }
+        }
+    }
+
+    /// Release the monitor mutex and wake waiters
+    fn release_mutex(&self) {
+        self.mutex.store(0, Ordering::Release);
+        wake_one(&self.mutex);
+    }
+
+    /// Wait on the next queue
+    fn wait_next_queue(&self) {
+        let current_val = self.next_queue.load(Ordering::Acquire);
+        wait(&self.next_queue, current_val);
+    }
+
+    /// Signal the next queue
+    fn signal_next_queue(&self) {
+        self.next_queue.fetch_add(1, Ordering::AcqRel);
+        wake_one(&self.next_queue);
+    }
+}
+
+// Thread safety: FutexMonitor uses atomic operations and futexes for synchronization
+unsafe impl Send for FutexMonitor {}
+unsafe impl Sync for FutexMonitor {}
+
+impl Monitor for FutexMonitor {
+    fn enter(&mut self) {
+        self.acquire_mutex();
+    }
+
+    fn leave(&mut self) {
+        let next_count = self.next_count.load(Ordering::Acquire);
+        if next_count > 0 {
+            // There are signaled threads waiting, let one proceed
+            self.signal_next_queue();
+        } else {
+            // No signaled threads, release the mutex normally
+            self.release_mutex();
+        }
+    }
+
+    fn wait(&mut self, condition: usize) {
+        if condition >= self.conditions.len() {
+            panic!("wait: Condition index {} out of bounds", condition);
+        }
+
+        // Release the monitor lock before waiting
+        let next_count = self.next_count.load(Ordering::Acquire);
+        if next_count > 0 {
+            self.signal_next_queue();
+        } else {
+            self.release_mutex();
+        }
+
+        // Wait on the condition variable
+        self.conditions[condition].wait();
+
+        // After being signaled, we need to re-acquire the monitor
+        // In Hoare semantics, the signaling thread passes control directly
+        // This is handled by the signal method's implementation
+    }
+
+    fn signal(&mut self, condition: usize) {
+        if condition >= self.conditions.len() {
+            panic!("signal: Condition index {} out of bounds", condition);
+        }
+
+        // Check if any thread is waiting on this condition
+        if self.conditions[condition].waiting_count() > 0 {
+            // Increment next_count to indicate a thread will be in the next queue
+            self.next_count.fetch_add(1, Ordering::AcqRel);
+
+            // Signal the condition variable (wake one waiter)
+            self.conditions[condition].signal();
+
+            // The signaling thread now waits on the next queue
+            // This implements Hoare semantics: immediate handoff of control
+            self.wait_next_queue();
+
+            // When we return, the signaled thread has finished and signaled us back
+            self.next_count.fetch_sub(1, Ordering::AcqRel);
+        }
+        // If no thread is waiting, do nothing (continue with monitor lock held)
+    }
+
+    fn notify(&mut self, condition: usize) {
+        if condition >= self.conditions.len() {
+            panic!("notify: Condition index {} out of bounds", condition);
+        }
+
+        // Mesa-style signal: just wake the thread, don't yield control
+        self.conditions[condition].signal();
+    }
+
+    fn broadcast(&mut self, condition: usize) {
+        if condition >= self.conditions.len() {
+            panic!("broadcast: Condition index {} out of bounds", condition);
+        }
+
+        // Wake all threads waiting on this condition
+        let woken_count = self.conditions[condition].broadcast();
+        
+        // In Mesa semantics, we don't yield control immediately
+        // All woken threads will compete for the monitor lock when we leave
+        if woken_count > 0 {
+            println!("Broadcast woke {} threads on condition {}", woken_count, condition);
+        }
+    }
+}
+
+
+
+
+/*
+ * ====================================================================================================================
+ */
+
+/*
+ * ############################################################################
+ * #                                                                          #
  * # Monitor implementation IPC                                               #
  * #                                                                          #
  * ############################################################################
@@ -325,23 +554,15 @@ impl IPCMonitorServer {
 }
 
 pub struct IPCMonitorClient {
-    tx: RawFd,
-    rx: RawFd,
+    _tx: RawFd,
+    _rx: RawFd,
 }
 
 impl IPCMonitorClient {
-    pub fn new(tx: RawFd, rx: RawFd) -> Self {
-        IPCMonitorClient { 
-            tx,
-            rx,
-        }
-    }
-
-    pub fn send(&self, wht: MonMessage, whr: usize) {
-        let message = Message::new(0, wht);
-        let (buffer, _size) = Message::encode(message);
+    pub fn new(_tx: RawFd, _rx: RawFd) -> Self {
         unimplemented!()
     }
+
 }
 
 

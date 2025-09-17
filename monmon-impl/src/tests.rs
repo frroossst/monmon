@@ -3,7 +3,6 @@ pub mod tests {
     use crate::message::Message;
     use crate::message::MonMessage::{MonEnter, MonLeave, MonWait, MonSignal};
 
-
     #[test]
     fn simple_encode_decode_test() {
         let msg = Message::new(0, MonEnter);

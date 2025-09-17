@@ -59,7 +59,8 @@ fn race(racekind: RaceKind, config: Arc<Config>) {
             accum_race_condition = Some(*r);
         }
         RaceKind::FutexBuffer => {
-            unimplemented!()
+            let r = std::hint::black_box(futex_multi_threaded_buffer(config));
+            buffer_race_condition = Some(*r);
         }
         RaceKind::ChannelsAccum => {
             let r = std::hint::black_box(channels_multi_threaded_accumulator(config));

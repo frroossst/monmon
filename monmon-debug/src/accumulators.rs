@@ -240,9 +240,45 @@ pub fn happylock_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCond
 }
 
 pub fn futex_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition<usize>> {
-    unimplemented!()
+    println!(
+        "{}",
+        "futex_multi_threaded_accumulator()"
+            .to_string()
+            .bright_cyan()
+            .italic()
+    );
+    let counter = Arc::new(UnsafeSharedAccumulator::default());
+    let mut handles = vec![];
+
+    let monitor = Arc::new(SharedMonitor::new(MonitorKind::Futex, 1));
+
+    for _ in 0..config.num_producer {
+        let accum = counter.clone();
+        let config = config.clone();
+        let monitor = monitor.clone();
+        let handle = thread::spawn(move || {
+            for _ in 0..config.per_producer {
+                {
+                    // critical section
+                    monitor.enter();
+                    accum.increment();
+                    monitor.leave();
+                } // end critical section
+            }
+        });
+        handles.push(handle);
+    }
+
+    // Join all producer threads
+    for handle in handles {
+        handle.join().unwrap();
+    }
+
+    let expected = config.num_producer * config.per_producer;
+    let race = RaceCondition::new(expected, counter.get());
+    Box::new(race)
 }
 
-pub fn channels_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition<usize>> {
+pub fn channels_multi_threaded_accumulator(_config: Arc<Config>) -> Box<RaceCondition<usize>> {
     unimplemented!()
 }
