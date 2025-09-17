@@ -122,7 +122,7 @@ pub fn stdblib_mutex_multi_threaded_accumulator(config: Arc<Config>) -> Box<Race
 pub fn sem_monitor_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition<usize>> {
     println!(
         "{}",
-        "monitor_multi_threaded_accumulator()"
+        "sem_monitor_multi_threaded_accumulator()"
             .to_string()
             .bright_cyan()
             .italic()
