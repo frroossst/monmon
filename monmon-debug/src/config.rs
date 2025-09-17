@@ -2,6 +2,20 @@ use core::fmt;
 
 use colored::Colorize;
 
+pub enum RaceKind {
+    UnsafeAccum,
+    UnsafeBuffer,
+    StdlibMutexAccum,
+    StdlibMutexBuffer,
+    BinarySemaphoreAccum,
+    BinarySemaphoreBuffer,
+    HappyLockAccum,
+    HappyLockBuffer,
+    SemaphoreMonitorAccum,
+    SemaphoreMonitorBuffer,
+}
+
+
 #[derive(Debug)]
 pub struct Config {
     _mode: ConfigKind,

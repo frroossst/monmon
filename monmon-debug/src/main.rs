@@ -3,75 +3,64 @@ use std::sync::Arc;
 
 use monmon_debug::accumulators::*;
 use monmon_debug::producer_consumer::*;
-use monmon_debug::config::{Config, ConfigKind, RaceCondition};
+use monmon_debug::config::{Config, ConfigKind, RaceCondition, RaceKind};
 
-enum RaceKind {
-    UnsafeAccum,
-    UnsafeBuffer,
-    StdlibMutexAccum,
-    StdlibMutexBuffer,
-    BinarySemaphoreAccum,
-    BinarySemaphoreBuffer,
-    HappyLockAccum,
-    HappyLockBuffer,
-    SemaphoreMonitorAccum,
-    SemaphoreMonitorBuffer,
-}
+
 
 fn race(racekind: RaceKind, config: Arc<Config>) {
     let start = std::time::Instant::now();
 
-    let mut usize_race_condition: Option<RaceCondition<usize>> = None;
-    let mut i64_race_condition: Option<RaceCondition<i64>> = None;
+    let mut accum_race_condition: Option<RaceCondition<usize>> = None;
+    let mut buffer_race_condition: Option<RaceCondition<i64>> = None;
     
     match racekind {
         RaceKind::UnsafeAccum => {
             let r = std::hint::black_box(unsafe_multi_threaded_accumulator(config));
-            usize_race_condition = Some(*r);
+            accum_race_condition = Some(*r);
         }
         RaceKind::UnsafeBuffer => {
             let r = std::hint::black_box(unsafe_multi_threaded_buffer(config));
-            i64_race_condition = Some(*r);
+            buffer_race_condition = Some(*r);
         }
         RaceKind::SemaphoreMonitorAccum => {
             let r = std::hint::black_box(sem_monitor_multi_threaded_accumulator(config));
-            usize_race_condition = Some(*r);
+            accum_race_condition = Some(*r);
         }
         RaceKind::SemaphoreMonitorBuffer => {
             let r = std::hint::black_box(sem_monitor_multi_threaded_buffer(config));
-            i64_race_condition = Some(*r);
+            buffer_race_condition = Some(*r);
         }
         RaceKind::StdlibMutexAccum => {
             let r =std::hint::black_box(stdblib_mutex_multi_threaded_accumulator(config));
-            usize_race_condition = Some(*r);
+            accum_race_condition = Some(*r);
         }
         RaceKind::StdlibMutexBuffer => {
             let r = std::hint::black_box(stdlib_mutex_multi_threaded_buffer(config));
-            i64_race_condition = Some(*r);
+            buffer_race_condition = Some(*r);
         }
         RaceKind::BinarySemaphoreAccum => {
             let r = std::hint::black_box(binary_semaphore_multi_threaded_accumulator(config));
-            usize_race_condition = Some(*r);
+            accum_race_condition = Some(*r);
         }
         RaceKind::BinarySemaphoreBuffer => {
             let r = std::hint::black_box(binary_semaphore_multi_threaded_buffer(config));
-            i64_race_condition = Some(*r);
+            buffer_race_condition = Some(*r);
         }
         RaceKind::HappyLockAccum => {
             let r = std::hint::black_box(happylock_multi_threaded_accumulator(config));
-            usize_race_condition = Some(*r);
+            accum_race_condition = Some(*r);
         }
         RaceKind::HappyLockBuffer => {
             let r = std::hint::black_box(happylock_multi_threaded_buffer(config));
-            i64_race_condition = Some(*r);
+            buffer_race_condition = Some(*r);
         }
     };
 
-    if usize_race_condition.is_some() {
-        let result = usize_race_condition.unwrap();
+    if accum_race_condition.is_some() {
+        let result = accum_race_condition.unwrap();
         print!("{:?}", result);
-    } else if i64_race_condition.is_some() {
-        let result = i64_race_condition.unwrap();
+    } else if buffer_race_condition.is_some() {
+        let result = buffer_race_condition.unwrap();
         print!("{:?}", result);
     } else {
         unreachable!("both races are None!!!");

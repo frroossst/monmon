@@ -60,8 +60,7 @@ pub fn unsafe_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceConditi
         let config = config.clone();
         let handle = thread::spawn(move || {
             for _ in 0..config.per_producer {
-                {
-                    // critical section
+                { // critical section
                     accum.increment();
                 } // end critical section
             }
