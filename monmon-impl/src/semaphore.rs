@@ -25,17 +25,17 @@ impl BinarySemaphore {
     /// Wait operation (P operation) on the semaphore.
     pub fn P_wait(&self) {
         loop {
-            let mut current = self.count.load(Ordering::Relaxed);
+            let mut current = self.count.load(Ordering::Acquire);
             while current == 0 {
                 for _ in 0..10_000 {
                     // crude delay
-                    let _ = self.count.load(Ordering::Relaxed);
+                    let _ = self.count.load(Ordering::Acquire);
                 }
-                current = self.count.load(Ordering::Relaxed);
+                current = self.count.load(Ordering::Acquire);
             }
             if self
                 .count
-                .compare_exchange(current, current - 1, Ordering::Acquire, Ordering::Relaxed)
+                .compare_exchange(current, current - 1, Ordering::Acquire, Ordering::Acquire)
                 .is_ok()
             {
                 break;

@@ -112,7 +112,7 @@ pub struct SemaphoreMonitor {
     /// meaning to actual condition variables
     condvars: Vec<Condition>,
 
-    /// number of threads waiting on the condition
+    /// number of threads waiting on the monitor's enter_queue
     next_count: usize,
 }
 
