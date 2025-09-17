@@ -13,6 +13,10 @@ pub enum RaceKind {
     HappyLockBuffer,
     SemaphoreMonitorAccum,
     SemaphoreMonitorBuffer,
+    FutexAccum,
+    FutexBuffer,
+    ChannelsAccum,
+    ChannelsBuffer,
 }
 
 

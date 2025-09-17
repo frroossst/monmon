@@ -238,3 +238,11 @@ pub fn happylock_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCond
     let race = RaceCondition::new(expected, counter.get());
     Box::new(race)
 }
+
+pub fn futex_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition<usize>> {
+    unimplemented!()
+}
+
+pub fn channels_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition<usize>> {
+    unimplemented!()
+}
