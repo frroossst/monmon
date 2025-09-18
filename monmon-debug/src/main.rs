@@ -62,13 +62,6 @@ fn race(racekind: RaceKind, config: Arc<Config>) {
             let r = std::hint::black_box(futex_multi_threaded_buffer(config));
             buffer_race_condition = Some(*r);
         }
-        RaceKind::ChannelsAccum => {
-            let r = std::hint::black_box(channels_multi_threaded_accumulator(config));
-            accum_race_condition = Some(*r);
-        }
-        RaceKind::ChannelsBuffer => {
-            unimplemented!()
-        }
     };
 
     if accum_race_condition.is_some() {
@@ -116,6 +109,4 @@ fn main() {
     race(RaceKind::HappyLockBuffer, config.clone());
     race(RaceKind::FutexAccum, config.clone());
     race(RaceKind::FutexBuffer, config.clone());
-    race(RaceKind::ChannelsAccum, config.clone());
-    race(RaceKind::ChannelsBuffer, config.clone());
 }
