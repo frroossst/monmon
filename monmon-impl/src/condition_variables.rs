@@ -30,14 +30,16 @@ pub struct FutexCondition {
     futex_word: AtomicU32,
 }
 
-impl FutexCondition {
-    pub fn new() -> Self {
-        FutexCondition {
+impl Default for FutexCondition {
+    fn default() -> Self {
+        Self {
             waiting: AtomicU32::new(0),
             futex_word: AtomicU32::new(0),
         }
     }
+}
 
+impl FutexCondition {
     /// Wait on this condition variable
     pub fn wait(&self) {
         // Increment waiting count

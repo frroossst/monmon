@@ -7,7 +7,7 @@ use std::sync::atomic::{AtomicU32, Ordering};
 use atomic_wait::{wait, wake_one};
 
 use crate::condition_variables::{Condition, FutexCondition};
-use crate::message::{Message, MonMessage, MESSAGE_SIZE};
+use crate::message::{Message, MESSAGE_SIZE};
 use crate::semaphore::BinarySemaphore;
 
 
@@ -279,7 +279,7 @@ impl FutexMonitor {
     pub fn new(num_conditions: usize) -> Self {
         let mut conditions = Vec::with_capacity(num_conditions);
         for _ in 0..num_conditions {
-            conditions.push(FutexCondition::new());
+            conditions.push(FutexCondition::default());
         }
 
         FutexMonitor {
@@ -490,12 +490,12 @@ impl IPCMonitorServer {
 }
 
 pub struct IPCMonitorClient {
-    _tx: RawFd,
-    _rx: RawFd,
+    tx: RawFd,
+    rx: RawFd,
 }
 
 impl IPCMonitorClient {
-    pub fn new(_tx: RawFd, _rx: RawFd) -> Self {
+    pub fn new(tx: RawFd, rx: RawFd) -> Self {
         unimplemented!()
     }
 
