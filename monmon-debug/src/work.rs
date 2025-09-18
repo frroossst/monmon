@@ -2,7 +2,7 @@ use rand::Rng;
 use std::thread;
 
 pub fn do_something() {
-    std::hint::black_box({
+    let _ : () = {
 
         // either randomly sleep, busy wait, or do nothing
         let mut rng = rand::rng();
@@ -22,5 +22,6 @@ pub fn do_something() {
             }
         }
 
-    });
+    };
+    std::hint::black_box(());
 }

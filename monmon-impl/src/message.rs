@@ -46,17 +46,17 @@ impl Message {
     pub fn encode(msg: Message) -> (Vec<u8>, usize) {
         let sender_bytes = msg.sender.to_be_bytes();
 
-        let mut cv_bytes = (0 as usize).to_be_bytes();
+        let mut cv_bytes = (0_usize).to_be_bytes();
         let msg_bytes = match msg.msg {
-            MonMessage::MonEnter => (0 as usize).to_be_bytes(),
-            MonMessage::MonLeave => (1 as usize).to_be_bytes(),
+            MonMessage::MonEnter => (0_usize).to_be_bytes(),
+            MonMessage::MonLeave => (1_usize).to_be_bytes(),
             MonMessage::MonWait(cv) => {
                 cv_bytes = cv.to_be_bytes();
-                (2 as usize).to_be_bytes()
+                (2_usize).to_be_bytes()
             },
             MonMessage::MonSignal(cv) => {
                 cv_bytes = cv.to_be_bytes();
-                (3 as usize).to_be_bytes()
+                (3_usize).to_be_bytes()
             },
         };
 

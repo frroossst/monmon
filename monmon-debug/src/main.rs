@@ -64,12 +64,10 @@ fn race(racekind: RaceKind, config: Arc<Config>) {
         }
     };
 
-    if accum_race_condition.is_some() {
-        let result = accum_race_condition.unwrap();
-        print!("{:?}", result);
-    } else if buffer_race_condition.is_some() {
-        let result = buffer_race_condition.unwrap();
-        print!("{:?}", result);
+    if let Some(r) = accum_race_condition {
+        print!("{:?}", r);
+    } else if let Some(r) = buffer_race_condition {
+        print!("{:?}", r);
     } else {
         unreachable!("both races are None!!!");
     }
