@@ -15,8 +15,6 @@ pub enum RaceKind {
     SemaphoreMonitorBuffer,
     FutexAccum,
     FutexBuffer,
-    ChannelsAccum,
-    ChannelsBuffer,
 }
 
 
