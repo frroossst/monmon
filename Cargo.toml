@@ -3,9 +3,9 @@ cargo-features = ["codegen-backend"]
 [workspace]
 members = [
     "monmon-impl",
-    "monmon-debug",
+    "monmon-dbg",
 ]
-default-members = ["monmon-debug"]
+default-members = ["monmon-dbg"]
 
 resolver = "2"
 

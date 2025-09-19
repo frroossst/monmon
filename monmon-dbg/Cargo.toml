@@ -1,5 +1,5 @@
 [package]
-name = "monmon-debug"
+name = "monmon-dbg"
 version = "0.1.0"
 edition = "2024"
 

@@ -36,7 +36,7 @@ pub struct Message {
 }
 
 pub const SIZEOF_USIZE: usize = std::mem::size_of::<usize>();
-pub const MESSAGE_SIZE: usize = 3* SIZEOF_USIZE;
+pub const MESSAGE_SIZE: usize = 3 * SIZEOF_USIZE;
 
 impl Message {
     pub fn new(sender: usize, msg: MonMessage) -> Self {

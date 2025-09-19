@@ -16,6 +16,6 @@ pub trait Monitor {
 #[derive(Debug, Clone, Copy)]
 pub enum MonitorKind {
     Semaphore,
-    InterProcessCommunication,
     Futex,
+    InterProcessCommunication,
 }

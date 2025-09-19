@@ -1,9 +1,9 @@
 use colored::Colorize;
 use std::sync::Arc;
 
-use monmon_debug::accumulators::*;
-use monmon_debug::producer_consumer::*;
-use monmon_debug::config::{Config, ConfigKind, RaceCondition, RaceKind};
+use monmon_dbg::accumulators::*;
+use monmon_dbg::producer_consumer::*;
+use monmon_dbg::config::{Config, ConfigKind, RaceCondition, RaceKind};
 
 
 
