@@ -1,3 +1,4 @@
+use std::cell::Cell;
 use crate::condition_variables::Condition;
 use crate::monitor_trait::Monitor;
 use crate::semaphore::BinarySemaphore;
@@ -14,7 +15,7 @@ pub struct SemaphoreMonitor {
     condvars: Vec<Condition>,
 
     /// number of threads waiting on the monitor's enter_queue
-    next_count: usize,
+    next_count: Cell<usize>,
 }
 
 // Implementing Send and Sync for SemaphoreMonitor
@@ -32,18 +33,18 @@ impl SemaphoreMonitor {
             mutex: BinarySemaphore::new(1),
             enter_queue: BinarySemaphore::new(0),
             condvars,
-            next_count: 0,
+            next_count: Cell::new(0),
         }
     }
 }
 
 impl Monitor for SemaphoreMonitor {
-    fn enter(&mut self) {
+    fn enter(&self) {
         self.mutex.P_wait();
     }
 
-    fn leave(&mut self) {
-        if self.next_count > 0 {
+    fn leave(&self) {
+        if self.next_count.get() > 0 {
             self.enter_queue.V_signal();
         } else {
             self.mutex.V_signal();
@@ -56,24 +57,24 @@ impl Monitor for SemaphoreMonitor {
     /// 3. Blocks on the condition's semaphore (`cond.sem`).
     /// 4. When woken by `signal`, the thread implicitly holds the lock again
     ///    (due to the Hoare semantics enforced by `signal`'s wait on `enter_queue`).
-    fn wait(&mut self, condition: usize) {
+    fn wait(&self, condition: usize) {
         // Ensure the condition index is valid.
         if condition >= self.condvars.len() {
             // Or return an error, depending on desired robustness
             panic!("wait: Condition index out of bounds");
         }
 
-        let cond = &mut self.condvars[condition];
+        let cond = &self.condvars[condition];
 
         // 1. Indicate intention to wait on this condition.
-        cond.waiting += 1;
+        cond.waiting.set(cond.waiting.get() + 1);
 
         // 2. Release the monitor lock. Decide who gets it next:
         //    If next_count > 0, there's a signaled thread waiting on enter_queue.
         //    Let it proceed first (Hoare semantics).
         //    Otherwise, release the main mutex for any new entrant.
         //    This is the same logic as in `leave`.
-        if self.next_count > 0 {
+        if self.next_count.get() > 0 {
             self.enter_queue.V_signal();
         } else {
             self.mutex.V_signal();
@@ -105,7 +106,7 @@ impl Monitor for SemaphoreMonitor {
     /// 5. When the woken thread eventually leaves or waits again, it signals `enter_queue`,
     ///    waking this signaling thread back up.
     /// 6. Decrements `next_count`.
-    fn signal(&mut self, condition: usize) {
+    fn signal(&self, condition: usize) {
         // Ensure the condition index is valid.
          if condition >= self.condvars.len() {
              panic!("signal: Condition index out of bounds");
@@ -113,20 +114,18 @@ impl Monitor for SemaphoreMonitor {
 
         // Only proceed if there is actually a thread waiting on this condition.
         // Crucially, check `waiting` *before* potentially blocking self on enter_queue.
-        if self.condvars[condition].waiting > 0 {
+        let cond = &self.condvars[condition];
+        if cond.waiting.get() > 0 {
             // A thread is waiting, so we will perform the signal-and-wait dance.
 
             // 3. Increment next_count: Indicates that we (the signaler) will soon block,
             //    and a woken thread will need to use the enter_queue mechanism.
-            self.next_count += 1;
-
-            // Borrow mutably to modify waiting count.
-             let cond = &mut self.condvars[condition];
+            self.next_count.set(self.next_count.get() + 1);
 
              // 1. Decrement waiting count *before* signaling.
              //    The woken thread is no longer technically waiting on the condition,
              //    it's about to be scheduled.
-             cond.waiting -= 1;
+             cond.waiting.set(cond.waiting.get() - 1);
 
             // 2. Signal the condition semaphore. This wakes up exactly one thread
             //    that is currently blocked in `cond.sem.P_wait()`.
@@ -142,7 +141,7 @@ impl Monitor for SemaphoreMonitor {
             //    We now re-acquire the monitor lock implicitly.
 
             // 6. Decrement next_count: We have now consumed the signal on enter_queue.
-            self.next_count -= 1;
+            self.next_count.set(self.next_count.get() - 1);
         }
         // If `cond.waiting` was 0, do nothing. The signaler continues execution
         // inside the monitor without interruption.

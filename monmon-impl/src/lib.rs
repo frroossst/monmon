@@ -6,7 +6,6 @@ pub mod tests;
 
 // Monitor-related modules
 pub mod monitor_trait;
-pub mod shared_monitor;
 pub mod semaphore_monitor;
 pub mod futex_monitor;
 pub mod ipc_monitor;

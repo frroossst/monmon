@@ -5,7 +5,7 @@ use std::{
 };
 
 use colored::Colorize;
-use monmon_impl::{monitors::{MonitorKind, SharedMonitor}, semaphore::BinarySemaphore};
+use monmon_impl::{monitor_trait::Monitor, semaphore::BinarySemaphore, semaphore_monitor::SemaphoreMonitor, futex_monitor::FutexMonitor};
 
 use crate::config::{Config, RaceCondition};
 
@@ -130,7 +130,7 @@ pub fn sem_monitor_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCo
     let counter = Arc::new(UnsafeSharedAccumulator::default());
     let mut handles = vec![];
 
-    let monitor = Arc::new(SharedMonitor::new(MonitorKind::Semaphore, 1));
+    let monitor = Arc::new(SemaphoreMonitor::new(1));
 
     for _ in 0..config.num_producer {
         let accum = counter.clone();
@@ -250,7 +250,7 @@ pub fn futex_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceConditio
     let counter = Arc::new(UnsafeSharedAccumulator::default());
     let mut handles = vec![];
 
-    let monitor = Arc::new(SharedMonitor::new(MonitorKind::Futex, 1));
+    let monitor = Arc::new(FutexMonitor::new(1));
 
     for _ in 0..config.num_producer {
         let accum = counter.clone();

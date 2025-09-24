@@ -1,13 +1,13 @@
 /// Common methods used by the monitor abstraction
 pub trait Monitor {
-    fn enter(&mut self);
-    fn leave(&mut self);
-    fn wait(&mut self, condition: usize);
-    fn signal(&mut self, condition: usize);
-    fn notify(&mut self, _condition: usize) {
+    fn enter(&self);
+    fn leave(&self);
+    fn wait(&self, condition: usize);
+    fn signal(&self, condition: usize);
+    fn notify(&self, _condition: usize) {
         unimplemented!("Notify (Mesa-style signal) not implemented for this monitor type")
     }
-    fn broadcast(&mut self, _condition: usize) {
+    fn broadcast(&self, _condition: usize) {
         unimplemented!("Broadcast (Mesa-style signal all) not implemented for this monitor type")
     }
 }

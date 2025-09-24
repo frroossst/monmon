@@ -27,32 +27,29 @@ impl SharedMonitor {
 
     /// Enter the monitor (acquire exclusive access)
     pub fn enter(&self) {
-        #[allow(clippy::needless_borrow)]
         unsafe {
-            (&mut *self.monitor.get()).enter();
+            (&*self.monitor.get()).enter();
         }
     }
 
     /// Leave the monitor (release exclusive access)
     pub fn leave(&self) {
-        #[allow(clippy::needless_borrow)]
         unsafe {
-            (&mut *self.monitor.get()).leave();
+            (&*self.monitor.get()).leave();
         }
     }
 
     /// Wait on a specific condition variable
     pub fn wait(&self, condition: usize) {
-        #[allow(clippy::needless_borrow)]
         unsafe {
-            (&mut *self.monitor.get()).wait(condition);
+            (&*self.monitor.get()).wait(condition);
         }
     }
 
     /// Signal a specific condition variable
     pub fn signal(&self, condition: usize) {
         unsafe {
-            (&mut *self.monitor.get()).signal(condition);
+            (&*self.monitor.get()).signal(condition);
         }
     }
 }

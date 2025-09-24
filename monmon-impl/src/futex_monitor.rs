@@ -73,11 +73,11 @@ unsafe impl Send for FutexMonitor {}
 unsafe impl Sync for FutexMonitor {}
 
 impl Monitor for FutexMonitor {
-    fn enter(&mut self) {
+    fn enter(&self) {
         self.acquire_mutex();
     }
 
-    fn leave(&mut self) {
+    fn leave(&self) {
         let next_count = self.next_count.load(Ordering::Acquire);
         if next_count > 0 {
             // There are signaled threads waiting, let one proceed
@@ -88,7 +88,7 @@ impl Monitor for FutexMonitor {
         }
     }
 
-    fn wait(&mut self, condition: usize) {
+    fn wait(&self, condition: usize) {
         if condition >= self.conditions.len() {
             panic!("wait: Condition index {} out of bounds", condition);
         }
@@ -109,7 +109,7 @@ impl Monitor for FutexMonitor {
         // This is handled by the signal method's implementation
     }
 
-    fn signal(&mut self, condition: usize) {
+    fn signal(&self, condition: usize) {
         if condition >= self.conditions.len() {
             panic!("signal: Condition index {} out of bounds", condition);
         }
@@ -132,7 +132,7 @@ impl Monitor for FutexMonitor {
         // If no thread is waiting, do nothing (continue with monitor lock held)
     }
 
-    fn notify(&mut self, condition: usize) {
+    fn notify(&self, condition: usize) {
         if condition >= self.conditions.len() {
             panic!("notify: Condition index {} out of bounds", condition);
         }
@@ -141,7 +141,7 @@ impl Monitor for FutexMonitor {
         self.conditions[condition].signal();
     }
 
-    fn broadcast(&mut self, condition: usize) {
+    fn broadcast(&self, condition: usize) {
         if condition >= self.conditions.len() {
             panic!("broadcast: Condition index {} out of bounds", condition);
         }

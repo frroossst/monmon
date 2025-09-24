@@ -1,7 +1,7 @@
 use std::{cell::UnsafeCell, sync::{Arc, Mutex}, thread};
 
 use colored::Colorize;
-use monmon_impl::{monitors::{MonitorKind, SharedMonitor}, semaphore::BinarySemaphore};
+use monmon_impl::{monitor_trait::Monitor, semaphore::BinarySemaphore, semaphore_monitor::SemaphoreMonitor, futex_monitor::FutexMonitor};
 
 use crate::config::{Config, RaceCondition};
 
@@ -164,7 +164,7 @@ pub fn sem_monitor_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceConditi
     // Create a monitor with one condition variable:
     // - condition 0: buffer is not empty (for consumers)
     const BUFFER_NOT_EMPTY: usize = 0;
-    let monitor = Arc::new(SharedMonitor::new(MonitorKind::Semaphore, 1));
+    let monitor = Arc::new(SemaphoreMonitor::new(1));
 
     // Producer threads
     for _ in 0..config.num_producer {
@@ -354,7 +354,7 @@ pub fn futex_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondition<i64
     // Create a monitor with one condition variable:
     // - condition 0: buffer is not empty (for consumers)
     const BUFFER_NOT_EMPTY: usize = 0;
-    let monitor = Arc::new(SharedMonitor::new(MonitorKind::Futex, 1));
+    let monitor = Arc::new(FutexMonitor::new(1));
 
     // Producer threads
     for _ in 0..config.num_producer {

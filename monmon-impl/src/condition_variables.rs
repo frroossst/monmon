@@ -1,4 +1,5 @@
 use std::sync::atomic::{AtomicU32, Ordering};
+use std::cell::Cell;
 use atomic_wait::{wait, wake_one, wake_all};
 
 
@@ -7,14 +8,14 @@ use crate::semaphore::BinarySemaphore;
 
 #[derive(Debug)]
 pub struct Condition {
-    pub waiting: usize,
+    pub waiting: Cell<usize>,
     pub sem: BinarySemaphore,
 }
 
 impl Default for Condition {
     fn default() -> Self {
         Condition {
-            waiting: 0,
+            waiting: Cell::new(0),
             sem: BinarySemaphore::new(0),
         }
     }
