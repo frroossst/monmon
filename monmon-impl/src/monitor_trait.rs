@@ -4,7 +4,7 @@ pub trait Monitor {
     ///     let _guard = monitor.lock();
     ///     /* drop gets called at the end of the scope and monitor.leave() is called too */
     /// }
-    /// 
+    ///
     fn lock(&self) -> crate::monitor_guard::MonitorGuard<'_, Self>
     where
         Self: Sized,
