@@ -1,7 +1,7 @@
-use std::cell::Cell;
 use crate::condition_variables::Condition;
 use crate::monitor_trait::Monitor;
 use crate::semaphore::BinarySemaphore;
+use std::cell::Cell;
 
 /// Implementing the monitor abstraction using semaphores
 #[derive(Debug)]
@@ -18,7 +18,7 @@ pub struct SemaphoreMonitor {
     next_count: Cell<usize>,
 }
 
-// Implementing Send and Sync for SemaphoreMonitor
+// SAFETY: The internal mutability is managed correctly through the monitor's methods.
 unsafe impl Sync for SemaphoreMonitor {}
 
 impl SemaphoreMonitor {
@@ -108,9 +108,9 @@ impl Monitor for SemaphoreMonitor {
     /// 6. Decrements `next_count`.
     fn signal(&self, condition: usize) {
         // Ensure the condition index is valid.
-         if condition >= self.condvars.len() {
-             panic!("signal: Condition index out of bounds");
-         }
+        if condition >= self.condvars.len() {
+            panic!("signal: Condition index out of bounds");
+        }
 
         // Only proceed if there is actually a thread waiting on this condition.
         // Crucially, check `waiting` *before* potentially blocking self on enter_queue.
@@ -122,10 +122,10 @@ impl Monitor for SemaphoreMonitor {
             //    and a woken thread will need to use the enter_queue mechanism.
             self.next_count.set(self.next_count.get() + 1);
 
-             // 1. Decrement waiting count *before* signaling.
-             //    The woken thread is no longer technically waiting on the condition,
-             //    it's about to be scheduled.
-             cond.waiting.set(cond.waiting.get() - 1);
+            // 1. Decrement waiting count *before* signaling.
+            //    The woken thread is no longer technically waiting on the condition,
+            //    it's about to be scheduled.
+            cond.waiting.set(cond.waiting.get() - 1);
 
             // 2. Signal the condition semaphore. This wakes up exactly one thread
             //    that is currently blocked in `cond.sem.P_wait()`.

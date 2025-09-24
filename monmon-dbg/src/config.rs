@@ -17,7 +17,6 @@ pub enum RaceKind {
     FutexMonitorBuffer,
 }
 
-
 #[derive(Debug)]
 pub struct Config {
     _mode: ConfigKind,
@@ -54,7 +53,7 @@ impl Config {
     }
 }
 
-use num_traits::{Zero, SaturatingSub};
+use num_traits::{SaturatingSub, Zero};
 
 pub struct RaceCondition<T> {
     pub expected: T,
@@ -81,7 +80,8 @@ where
             writeln!(
                 f,
                 "Missing items: {}",
-                self.expected.saturating_sub(&self.actual)
+                self.expected
+                    .saturating_sub(&self.actual)
                     .to_string()
                     .bright_white()
                     .italic()

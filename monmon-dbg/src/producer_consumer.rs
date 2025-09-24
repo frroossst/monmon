@@ -1,7 +1,14 @@
-use std::{cell::UnsafeCell, sync::{Arc, Mutex}, thread};
+use std::{
+    cell::UnsafeCell,
+    sync::{Arc, Mutex},
+    thread,
+};
 
 use colored::Colorize;
-use monmon_impl::{monitor_trait::Monitor, semaphore::BinarySemaphore, semaphore_monitor::SemaphoreMonitor, futex_monitor::FutexMonitor};
+use monmon_impl::{
+    futex_monitor::FutexMonitor, monitor_trait::Monitor, semaphore::BinarySemaphore,
+    semaphore_monitor::SemaphoreMonitor,
+};
 
 use crate::config::{Config, RaceCondition};
 
@@ -10,7 +17,7 @@ pub struct UnsafeSharedBuffer {
     value: UnsafeCell<i64>,
 }
 
-unsafe impl Send for UnsafeSharedBuffer {}
+// SAFETY: We **want** this to have a data race for demonstration purposes
 unsafe impl Sync for UnsafeSharedBuffer {}
 
 impl Default for UnsafeSharedBuffer {
@@ -27,10 +34,14 @@ impl UnsafeSharedBuffer {
     }
 
     pub fn get(&self) -> i64 {
+        // SAFETY: We are allowing unsynchronized access to the internal value
+        // for demonstration purposes
         unsafe { *self.value.get() }
     }
 
     pub fn produce(&self) {
+        // SAFETY: We are allowing unsynchronized access to the internal value
+        // for demonstration purposes
         unsafe {
             let current_value = *self.value.get();
             crate::work::do_something();
@@ -40,6 +51,8 @@ impl UnsafeSharedBuffer {
     }
 
     pub fn consume(&self) {
+        // SAFETY: We are allowing unsynchronized access to the internal value
+        // for demonstration purposes
         unsafe {
             let current_value = *self.value.get();
             crate::work::do_something();
@@ -47,7 +60,6 @@ impl UnsafeSharedBuffer {
             crate::work::do_something();
         }
     }
-
 }
 
 pub fn unsafe_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondition<i64>> {
@@ -86,7 +98,6 @@ pub fn unsafe_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondition<i6
     for handle in handles {
         handle.join().unwrap();
     }
-
 
     let expected: i64 = 0;
     let race = RaceCondition::new(expected, buffer.get());
@@ -129,11 +140,10 @@ pub fn stdlib_mutex_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondit
         let monitor = monitor.clone();
         let handle = thread::spawn(move || {
             for _ in 0..config.per_producer {
-                // unsafe {
                 {
                     let _guard = monitor.lock().unwrap();
                     accum.consume();
-                } // end critical section
+                } 
             }
         });
         handles.push(handle);
@@ -175,13 +185,13 @@ pub fn sem_monitor_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceConditi
             for _ in 0..config.per_producer {
                 // Enter monitor (acquire lock)
                 monitor.enter();
-                
+
                 // Produce item
                 buffer.produce();
-                
+
                 // Signal to any waiting consumers that buffer is not empty
                 monitor.signal(BUFFER_NOT_EMPTY);
-                
+
                 // Leave monitor (release lock)
                 monitor.leave();
             }
@@ -198,15 +208,15 @@ pub fn sem_monitor_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceConditi
             for _ in 0..config.per_producer {
                 // Enter monitor (acquire lock)
                 monitor.enter();
-                
+
                 // Check if buffer is empty - if so, wait
                 if buffer.get() <= 0 {
                     monitor.wait(BUFFER_NOT_EMPTY);
                 }
-                
+
                 // Consume item
                 buffer.consume();
-                
+
                 // Leave monitor (release lock)
                 monitor.leave();
             }
@@ -365,13 +375,13 @@ pub fn futex_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondition<i64
             for _ in 0..config.per_producer {
                 // Enter monitor (acquire lock)
                 monitor.enter();
-                
+
                 // Produce item
                 buffer.produce();
-                
+
                 // Signal to any waiting consumers that buffer is not empty
                 monitor.signal(BUFFER_NOT_EMPTY);
-                
+
                 // Leave monitor (release lock)
                 monitor.leave();
             }
@@ -388,15 +398,15 @@ pub fn futex_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondition<i64
             for _ in 0..config.per_producer {
                 // Enter monitor (acquire lock)
                 monitor.enter();
-                
+
                 // Check if buffer is empty - if so, wait
                 if buffer.get() <= 0 {
                     monitor.wait(BUFFER_NOT_EMPTY);
                 }
-                
+
                 // Consume item
                 buffer.consume();
-                
+
                 // Leave monitor (release lock)
                 monitor.leave();
             }

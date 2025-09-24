@@ -1,10 +1,8 @@
-use std::sync::atomic::{AtomicU32, Ordering};
+use atomic_wait::{wait, wake_all, wake_one};
 use std::cell::Cell;
-use atomic_wait::{wait, wake_one, wake_all};
-
+use std::sync::atomic::{AtomicU32, Ordering};
 
 use crate::semaphore::BinarySemaphore;
-
 
 #[derive(Debug)]
 pub struct Condition {
@@ -20,7 +18,6 @@ impl Default for Condition {
         }
     }
 }
-
 
 /// A condition variable implementation using futexes
 #[derive(Debug)]
@@ -45,13 +42,13 @@ impl FutexCondition {
     pub fn wait(&self) {
         // Increment waiting count
         self.waiting.fetch_add(1, Ordering::AcqRel);
-        
+
         // Get current futex value
         let current_val = self.futex_word.load(Ordering::Acquire);
-        
+
         // Wait on the futex
         wait(&self.futex_word, current_val);
-        
+
         // We've been woken up, decrement waiting count
         self.waiting.fetch_sub(1, Ordering::AcqRel);
     }

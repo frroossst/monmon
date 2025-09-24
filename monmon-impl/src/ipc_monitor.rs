@@ -1,16 +1,14 @@
+use once_cell::sync::OnceCell;
 use std::os::fd::{AsRawFd, OwnedFd, RawFd};
 use std::sync::atomic::AtomicBool;
-use once_cell::sync::OnceCell;
 
 use crate::condition_variables::Condition;
-use crate::message::{Message, MESSAGE_SIZE};
-
-
+use crate::message::{MESSAGE_SIZE, Message};
 
 static IPCSERVER_SINGLETON: OnceCell<AtomicBool> = OnceCell::new();
 
 /// Implementing the monitor abstraction using IPC
-/// Uses Send/Receive/Reply, Send(s) are blocking 
+/// Uses Send/Receive/Reply, Send(s) are blocking
 #[derive(Debug)]
 pub struct IPCMonitorServer {
     tx: OwnedFd,
@@ -51,7 +49,7 @@ impl IPCMonitorServer {
         if bytes_read != MESSAGE_SIZE {
             panic!("Failed to read the full message");
         }
-        
+
         if let Ok(msg) = Message::decode(&buffer) {
             msg
         } else {
@@ -81,5 +79,3 @@ impl IPCMonitorClient {
         unimplemented!()
     }
 }
-
-

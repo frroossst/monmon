@@ -5,7 +5,10 @@ use std::{
 };
 
 use colored::Colorize;
-use monmon_impl::{monitor_trait::Monitor, semaphore::BinarySemaphore, semaphore_monitor::SemaphoreMonitor, futex_monitor::FutexMonitor};
+use monmon_impl::{
+    futex_monitor::FutexMonitor, monitor_trait::Monitor, semaphore::BinarySemaphore,
+    semaphore_monitor::SemaphoreMonitor,
+};
 
 use crate::config::{Config, RaceCondition};
 
@@ -14,7 +17,7 @@ pub struct UnsafeSharedAccumulator {
     value: UnsafeCell<usize>,
 }
 
-unsafe impl Send for UnsafeSharedAccumulator {}
+// SAFETY: We **want** this to have a data race for demonstration purposes
 unsafe impl Sync for UnsafeSharedAccumulator {}
 
 impl Default for UnsafeSharedAccumulator {
@@ -31,10 +34,14 @@ impl UnsafeSharedAccumulator {
     }
 
     pub fn get(&self) -> usize {
+        // SAFETY: We are allowing unsynchronized access to the internal value
+        // for demonstration purposes
         unsafe { *self.value.get() }
     }
 
     pub fn increment(&self) {
+        // SAFETY: We are allowing unsynchronized access to the internal value
+        // for demonstration purposes
         unsafe {
             let current_value = *self.value.get();
             crate::work::do_something();
@@ -60,7 +67,8 @@ pub fn unsafe_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceConditi
         let config = config.clone();
         let handle = thread::spawn(move || {
             for _ in 0..config.per_producer {
-                { // critical section
+                {
+                    // critical section
                     accum.increment();
                 } // end critical section
             }
@@ -97,13 +105,11 @@ pub fn stdblib_mutex_multi_threaded_accumulator(config: Arc<Config>) -> Box<Race
         let monitor = monitor.clone();
         let handle = thread::spawn(move || {
             for _ in 0..config.per_producer {
-                // unsafe {
                 {
-                    // critical section
-                    let _unused = monitor.lock().unwrap();
-                    accum.increment();
+                // critical section
+                let _unused = monitor.lock().unwrap();
+                accum.increment();
                 } // end critical section
-                // }
             }
         });
         handles.push(handle);
@@ -159,7 +165,9 @@ pub fn sem_monitor_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCo
     Box::new(race)
 }
 
-pub fn binary_semaphore_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition<usize>> {
+pub fn binary_semaphore_multi_threaded_accumulator(
+    config: Arc<Config>,
+) -> Box<RaceCondition<usize>> {
     println!(
         "{}",
         "binary_semaphore_multi_threaded_accumulator()"

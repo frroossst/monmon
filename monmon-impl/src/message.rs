@@ -13,7 +13,6 @@ pub trait Communication {
     fn reply(&self, msg: MonMessage);
 }
 
-
 #[derive(Debug)]
 pub enum EncDecError {
     CorruptedMessage,
@@ -53,11 +52,11 @@ impl Message {
             MonMessage::MonWait(cv) => {
                 cv_bytes = cv.to_be_bytes();
                 (2_usize).to_be_bytes()
-            },
+            }
             MonMessage::MonSignal(cv) => {
                 cv_bytes = cv.to_be_bytes();
                 (3_usize).to_be_bytes()
-            },
+            }
         };
 
         let mut buffer = [0u8; SIZEOF_USIZE * 3];
@@ -74,14 +73,15 @@ impl Message {
             .try_into()
             .map_err(|_| EncDecError::CorruptedMessage)?;
 
-        let msg_bytes: [u8; SIZEOF_USIZE] = buffer[std::mem::size_of::<usize>()..2 * std::mem::size_of::<usize>()]
+        let msg_bytes: [u8; SIZEOF_USIZE] = buffer
+            [std::mem::size_of::<usize>()..2 * std::mem::size_of::<usize>()]
             .try_into()
             .map_err(|_| EncDecError::CorruptedMessage)?;
 
-        let cv_bytes: [u8; SIZEOF_USIZE] = buffer[2 * std::mem::size_of::<usize>()..3 * std::mem::size_of::<usize>()]
+        let cv_bytes: [u8; SIZEOF_USIZE] = buffer
+            [2 * std::mem::size_of::<usize>()..3 * std::mem::size_of::<usize>()]
             .try_into()
             .map_err(|_| EncDecError::CorruptedMessage)?;
-
 
         let sender = usize::from_be_bytes(sender_bytes);
         let msg_type = usize::from_be_bytes(msg_bytes);
@@ -97,6 +97,4 @@ impl Message {
 
         Ok(Message { sender, msg })
     }
-
 }
-

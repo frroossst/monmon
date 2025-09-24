@@ -37,7 +37,10 @@ impl FutexMonitor {
     fn acquire_mutex(&self) {
         loop {
             // Try to acquire the mutex (compare_exchange from 0 to 1)
-            match self.mutex.compare_exchange_weak(0, 1, Ordering::AcqRel, Ordering::Relaxed) {
+            match self
+                .mutex
+                .compare_exchange_weak(0, 1, Ordering::AcqRel, Ordering::Relaxed)
+            {
                 Ok(_) => break, // Successfully acquired
                 Err(current) => {
                     // Mutex is locked, wait for it
@@ -68,8 +71,7 @@ impl FutexMonitor {
     }
 }
 
-// Thread safety: FutexMonitor uses atomic operations and futexes for synchronization
-unsafe impl Send for FutexMonitor {}
+// SAFETY: FutexMonitor uses atomic operations and futexes for synchronization
 unsafe impl Sync for FutexMonitor {}
 
 impl Monitor for FutexMonitor {
@@ -148,11 +150,14 @@ impl Monitor for FutexMonitor {
 
         // Wake all threads waiting on this condition
         let woken_count = self.conditions[condition].broadcast();
-        
+
         // In Mesa semantics, we don't yield control immediately
         // All woken threads will compete for the monitor lock when we leave
         if woken_count > 0 {
-            println!("Broadcast woke {} threads on condition {}", woken_count, condition);
+            println!(
+                "Broadcast woke {} threads on condition {}",
+                woken_count, condition
+            );
         }
     }
 }

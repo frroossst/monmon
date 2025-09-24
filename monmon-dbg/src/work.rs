@@ -2,8 +2,7 @@ use rand::Rng;
 use std::thread;
 
 pub fn do_something() {
-    let _ : () = {
-
+    let _: () = {
         // either randomly sleep, busy wait, or do nothing
         let mut rng = rand::rng();
         let random_number = rng.random_range(0..3);
@@ -21,7 +20,6 @@ pub fn do_something() {
                 // Do nothing
             }
         }
-
     };
     std::hint::black_box(());
 }

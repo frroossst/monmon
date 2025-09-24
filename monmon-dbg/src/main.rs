@@ -2,17 +2,15 @@ use colored::Colorize;
 use std::sync::Arc;
 
 use monmon_dbg::accumulators::*;
-use monmon_dbg::producer_consumer::*;
 use monmon_dbg::config::{Config, ConfigKind, RaceCondition, RaceKind};
-
-
+use monmon_dbg::producer_consumer::*;
 
 fn race(racekind: RaceKind, config: Arc<Config>) {
     let start = std::time::Instant::now();
 
     let mut accum_race_condition: Option<RaceCondition<usize>> = None;
     let mut buffer_race_condition: Option<RaceCondition<i64>> = None;
-    
+
     match racekind {
         RaceKind::UnsafeAccum => {
             let r = std::hint::black_box(unsafe_multi_threaded_accumulator(config));
@@ -31,7 +29,7 @@ fn race(racekind: RaceKind, config: Arc<Config>) {
             buffer_race_condition = Some(*r);
         }
         RaceKind::StdlibMutexAccum => {
-            let r =std::hint::black_box(stdblib_mutex_multi_threaded_accumulator(config));
+            let r = std::hint::black_box(stdblib_mutex_multi_threaded_accumulator(config));
             accum_race_condition = Some(*r);
         }
         RaceKind::StdlibMutexBuffer => {
@@ -79,7 +77,6 @@ fn race(racekind: RaceKind, config: Arc<Config>) {
     println!();
 }
 
-
 fn main() {
     let mut args = std::env::args();
     let _program = args.next().expect("program name expected");
@@ -97,9 +94,9 @@ fn main() {
 
     #[cfg(not(miri))]
     {
-    race(RaceKind::UnsafeAccum, config.clone());
-    race(RaceKind::UnsafeBuffer, config.clone());
-    }    
+        race(RaceKind::UnsafeAccum, config.clone());
+        race(RaceKind::UnsafeBuffer, config.clone());
+    }
     race(RaceKind::SemaphoreMonitorAccum, config.clone());
     race(RaceKind::SemaphoreMonitorBuffer, config.clone());
     race(RaceKind::StdlibMutexAccum, config.clone());
