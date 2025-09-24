@@ -96,9 +96,10 @@ fn main() {
     let config = Arc::new(config);
 
     #[cfg(not(miri))]
+    {
     race(RaceKind::UnsafeAccum, config.clone());
-    #[cfg(not(miri))]
     race(RaceKind::UnsafeBuffer, config.clone());
+    }    
     race(RaceKind::SemaphoreMonitorAccum, config.clone());
     race(RaceKind::SemaphoreMonitorBuffer, config.clone());
     race(RaceKind::StdlibMutexAccum, config.clone());
