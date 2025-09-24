@@ -95,16 +95,18 @@ fn main() {
 
     let config = Arc::new(config);
 
-    // race(RaceKind::UnsafeAccum, config.clone());
-    // race(RaceKind::UnsafeBuffer, config.clone());
+    #[cfg(not(miri))]
+    race(RaceKind::UnsafeAccum, config.clone());
+    #[cfg(not(miri))]
+    race(RaceKind::UnsafeBuffer, config.clone());
     race(RaceKind::SemaphoreMonitorAccum, config.clone());
     race(RaceKind::SemaphoreMonitorBuffer, config.clone());
-    // race(RaceKind::StdlibMutexAccum, config.clone());
-    // race(RaceKind::StdlibMutexBuffer, config.clone());
-    // race(RaceKind::BinarySemaphoreAccum, config.clone());
-    // race(RaceKind::BinarySemaphoreBuffer, config.clone());
-    // race(RaceKind::HappyLockAccum, config.clone());
-    // race(RaceKind::HappyLockBuffer, config.clone());
-    // race(RaceKind::FutexAccum, config.clone());
-    // race(RaceKind::FutexBuffer, config.clone());
+    race(RaceKind::StdlibMutexAccum, config.clone());
+    race(RaceKind::StdlibMutexBuffer, config.clone());
+    race(RaceKind::BinarySemaphoreAccum, config.clone());
+    race(RaceKind::BinarySemaphoreBuffer, config.clone());
+    race(RaceKind::HappyLockAccum, config.clone());
+    race(RaceKind::HappyLockBuffer, config.clone());
+    race(RaceKind::FutexMonitorAccum, config.clone());
+    race(RaceKind::FutexMonitorBuffer, config.clone());
 }
