@@ -3,6 +3,10 @@ use crate::monitors::Monitor;
 /// RAII guard that locks a monitor on creation and unlocks it on drop
 /// This ensures that the monitor is always properly released and is more
 /// rusty/idiomatic than manually calling enter/leave.
+/// {
+///     let _guard = monitor.lock();
+/// } // drop is called here, releasing the monitor
+///
 pub struct MonitorGuard<'a, M: Monitor> {
     monitor: &'a M,
 }
