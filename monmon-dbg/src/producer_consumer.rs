@@ -143,7 +143,7 @@ pub fn stdlib_mutex_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondit
                 {
                     let _guard = monitor.lock().unwrap();
                     accum.consume();
-                } 
+                }
             }
         });
         handles.push(handle);

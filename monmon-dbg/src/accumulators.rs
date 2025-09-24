@@ -6,8 +6,8 @@ use std::{
 
 use colored::Colorize;
 use monmon_impl::{
-    futex_monitor::FutexMonitor, monitor_trait::Monitor, semaphore::BinarySemaphore,
-    semaphore_monitor::SemaphoreMonitor,
+    critical_section, futex_monitor::FutexMonitor, monitor_trait::Monitor,
+    semaphore::BinarySemaphore, semaphore_monitor::SemaphoreMonitor,
 };
 
 use crate::config::{Config, RaceCondition};
@@ -67,10 +67,9 @@ pub fn unsafe_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceConditi
         let config = config.clone();
         let handle = thread::spawn(move || {
             for _ in 0..config.per_producer {
-                {
-                    // critical section
+                critical_section!({
                     accum.increment();
-                } // end critical section
+                });
             }
         });
         handles.push(handle);
@@ -105,11 +104,10 @@ pub fn stdblib_mutex_multi_threaded_accumulator(config: Arc<Config>) -> Box<Race
         let monitor = monitor.clone();
         let handle = thread::spawn(move || {
             for _ in 0..config.per_producer {
-                {
-                // critical section
-                let _unused = monitor.lock().unwrap();
-                accum.increment();
-                } // end critical section
+                critical_section!({
+                    let _unused = monitor.lock().unwrap();
+                    accum.increment();
+                })
             }
         });
         handles.push(handle);
@@ -144,12 +142,11 @@ pub fn sem_monitor_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCo
         let monitor = monitor.clone();
         let handle = thread::spawn(move || {
             for _ in 0..config.per_producer {
-                {
-                    // critical section
+                critical_section!({
                     monitor.enter();
                     accum.increment();
                     monitor.leave();
-                } // end critical section
+                })
             }
         });
         handles.push(handle);
@@ -186,12 +183,11 @@ pub fn binary_semaphore_multi_threaded_accumulator(
         let monitor = monitor.clone();
         let handle = thread::spawn(move || {
             for _ in 0..config.per_producer {
-                {
-                    // critical section
+                critical_section!({
                     monitor.P_wait();
                     accum.increment();
                     monitor.V_signal();
-                } // end critical section
+                })
             }
         });
         handles.push(handle);
@@ -226,12 +222,11 @@ pub fn happylock_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCond
         let monitor = monitor.clone();
         let handle = thread::spawn(move || {
             for _ in 0..config.per_producer {
-                {
-                    // critical section
+                critical_section!({
                     let key = happylock::ThreadKey::get().unwrap();
                     let _unused = monitor.lock(key);
                     accum.increment();
-                } // end critical section
+                })
             }
         });
         handles.push(handle);
@@ -266,12 +261,11 @@ pub fn futex_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceConditio
         let monitor = monitor.clone();
         let handle = thread::spawn(move || {
             for _ in 0..config.per_producer {
-                {
-                    // critical section
+                critical_section!({
                     monitor.enter();
                     accum.increment();
                     monitor.leave();
-                } // end critical section
+                })
             }
         });
         handles.push(handle);
