@@ -6,8 +6,8 @@ use std::{
 
 use colored::Colorize;
 use monmon_impl::{
-    futex_monitor::FutexMonitor, monitor_trait::Monitor, semaphore::BinarySemaphore,
-    semaphore_monitor::SemaphoreMonitor,
+    critical_section, futex_monitor::FutexMonitor, monitor_trait::Monitor,
+    semaphore::BinarySemaphore, semaphore_monitor::SemaphoreMonitor,
 };
 
 use crate::config::{Config, RaceCondition};
@@ -124,11 +124,10 @@ pub fn stdlib_mutex_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondit
         let monitor = monitor.clone();
         let handle = thread::spawn(move || {
             for _ in 0..config.per_producer {
-                // unsafe {
-                {
+                critical_section!({
                     let _guard = monitor.lock().unwrap();
                     accum.produce();
-                } // end critical section
+                })
             }
         });
         handles.push(handle);
@@ -183,17 +182,19 @@ pub fn sem_monitor_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceConditi
         let monitor = monitor.clone();
         let handle = thread::spawn(move || {
             for _ in 0..config.per_producer {
-                // Enter monitor (acquire lock)
-                monitor.enter();
+                critical_section!({
+                    // Enter monitor (acquire lock)
+                    monitor.enter();
 
-                // Produce item
-                buffer.produce();
+                    // Produce item
+                    buffer.produce();
 
-                // Signal to any waiting consumers that buffer is not empty
-                monitor.signal(BUFFER_NOT_EMPTY);
+                    // Signal to any waiting consumers that buffer is not empty
+                    monitor.signal(BUFFER_NOT_EMPTY);
 
-                // Leave monitor (release lock)
-                monitor.leave();
+                    // Leave monitor (release lock)
+                    monitor.leave();
+                })
             }
         });
         handles.push(handle);
@@ -206,19 +207,21 @@ pub fn sem_monitor_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceConditi
         let monitor = monitor.clone();
         let handle = thread::spawn(move || {
             for _ in 0..config.per_producer {
-                // Enter monitor (acquire lock)
-                monitor.enter();
+                critical_section!({
+                    // Enter monitor (acquire lock)
+                    monitor.enter();
 
-                // Check if buffer is empty - if so, wait
-                if buffer.get() <= 0 {
-                    monitor.wait(BUFFER_NOT_EMPTY);
-                }
+                    // Check if buffer is empty - if so, wait
+                    if buffer.get() <= 0 {
+                        monitor.wait(BUFFER_NOT_EMPTY);
+                    }
 
-                // Consume item
-                buffer.consume();
+                    // Consume item
+                    buffer.consume();
 
-                // Leave monitor (release lock)
-                monitor.leave();
+                    // Leave monitor (release lock)
+                    monitor.leave();
+                })
             }
         });
         handles.push(handle);
@@ -253,12 +256,11 @@ pub fn binary_semaphore_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCo
         let monitor = monitor.clone();
         let handle = thread::spawn(move || {
             for _ in 0..config.per_producer {
-                {
-                    // critical section
+                critical_section!({
                     monitor.P_wait();
                     accum.produce();
                     monitor.V_signal();
-                } // end critical section
+                })
             }
         });
         handles.push(handle);
@@ -270,12 +272,11 @@ pub fn binary_semaphore_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCo
         let monitor = monitor.clone();
         let handle = thread::spawn(move || {
             for _ in 0..config.per_producer {
-                {
-                    // critical section
+                critical_section!({
                     monitor.P_wait();
                     accum.consume();
                     monitor.V_signal();
-                } // end critical section
+                })
             }
         });
         handles.push(handle);
@@ -310,12 +311,11 @@ pub fn happylock_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondition
         let monitor = monitor.clone();
         let handle = thread::spawn(move || {
             for _ in 0..config.per_producer {
-                {
-                    // critical section
+                critical_section!({
                     let key = happylock::ThreadKey::get().unwrap();
                     let _unused = monitor.lock(key);
                     accum.produce();
-                } // end critical section
+                })
             }
         });
         handles.push(handle);
@@ -327,12 +327,11 @@ pub fn happylock_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondition
         let monitor = monitor.clone();
         let handle = thread::spawn(move || {
             for _ in 0..config.per_producer {
-                {
-                    // critical section
+                critical_section!({
                     let key = happylock::ThreadKey::get().unwrap();
                     let _unused = monitor.lock(key);
                     accum.consume();
-                } // end critical section
+                })
             }
         });
         handles.push(handle);
@@ -373,17 +372,19 @@ pub fn futex_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondition<i64
         let monitor = monitor.clone();
         let handle = thread::spawn(move || {
             for _ in 0..config.per_producer {
-                // Enter monitor (acquire lock)
-                monitor.enter();
+                critical_section!({
+                    // Enter monitor (acquire lock)
+                    monitor.enter();
 
-                // Produce item
-                buffer.produce();
+                    // Produce item
+                    buffer.produce();
 
-                // Signal to any waiting consumers that buffer is not empty
-                monitor.signal(BUFFER_NOT_EMPTY);
+                    // Signal to any waiting consumers that buffer is not empty
+                    monitor.signal(BUFFER_NOT_EMPTY);
 
-                // Leave monitor (release lock)
-                monitor.leave();
+                    // Leave monitor (release lock)
+                    monitor.leave();
+                })
             }
         });
         handles.push(handle);
@@ -396,19 +397,21 @@ pub fn futex_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondition<i64
         let monitor = monitor.clone();
         let handle = thread::spawn(move || {
             for _ in 0..config.per_producer {
-                // Enter monitor (acquire lock)
-                monitor.enter();
+                critical_section!({
+                    // Enter monitor (acquire lock)
+                    monitor.enter();
 
-                // Check if buffer is empty - if so, wait
-                if buffer.get() <= 0 {
-                    monitor.wait(BUFFER_NOT_EMPTY);
-                }
+                    // Check if buffer is empty - if so, wait
+                    if buffer.get() <= 0 {
+                        monitor.wait(BUFFER_NOT_EMPTY);
+                    }
 
-                // Consume item
-                buffer.consume();
+                    // Consume item
+                    buffer.consume();
 
-                // Leave monitor (release lock)
-                monitor.leave();
+                    // Leave monitor (release lock)
+                    monitor.leave();
+                })
             }
         });
         handles.push(handle);
