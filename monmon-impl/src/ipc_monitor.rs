@@ -1,3 +1,8 @@
+/// IPC based monitor implementation
+/// 
+/// 
+/// 
+
 use once_cell::sync::OnceCell;
 use std::os::fd::{AsRawFd, OwnedFd, RawFd};
 use std::sync::atomic::AtomicBool;

@@ -8,6 +8,7 @@ pub mod tests;
 pub mod futex_monitor;
 pub mod ipc_monitor;
 pub mod monitor_trait;
+pub mod monitor_guard;
 pub mod semaphore_monitor;
 
 // Main monitors module that re-exports everything

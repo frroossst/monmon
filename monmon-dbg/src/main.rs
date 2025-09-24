@@ -97,12 +97,12 @@ fn main() {
         race(RaceKind::UnsafeAccum, config.clone());
         race(RaceKind::UnsafeBuffer, config.clone());
     }
-    race(RaceKind::StdlibMutexAccum, config.clone());
-    race(RaceKind::StdlibMutexBuffer, config.clone());
     race(RaceKind::SemaphoreMonitorAccum, config.clone());
     race(RaceKind::SemaphoreMonitorBuffer, config.clone());
     race(RaceKind::FutexMonitorAccum, config.clone());
     race(RaceKind::FutexMonitorBuffer, config.clone());
+    race(RaceKind::StdlibMutexAccum, config.clone());
+    race(RaceKind::StdlibMutexBuffer, config.clone());
     race(RaceKind::BinarySemaphoreAccum, config.clone());
     race(RaceKind::BinarySemaphoreBuffer, config.clone());
     race(RaceKind::HappyLockAccum, config.clone());

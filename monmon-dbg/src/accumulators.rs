@@ -143,9 +143,10 @@ pub fn sem_monitor_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCo
         let handle = thread::spawn(move || {
             for _ in 0..config.per_producer {
                 critical_section!({
-                    monitor.enter();
+                    let _guard = monitor.lock();
+                    // monitor.enter();
                     accum.increment();
-                    monitor.leave();
+                    // monitor.leave();
                 })
             }
         });
