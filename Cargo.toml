@@ -14,3 +14,8 @@ debug = "full"
 opt-level = 0
 codegen-backend = "cranelift"
 
+[profile.release]
+lto = true
+codegen-units = 1
+panic = "abort"
+
