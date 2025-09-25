@@ -15,15 +15,15 @@ pub struct SemaphoreMonitor {
     condvars: Vec<Condition>,
 
     /// number of threads waiting on the monitor's enter_queue
-    next_count: Cell<usize>,
+    next_count: Cell<u32>,
 }
 
 // SAFETY: The internal mutability is managed correctly through the monitor's methods.
 unsafe impl Sync for SemaphoreMonitor {}
 
 impl SemaphoreMonitor {
-    pub fn new(num_conds: usize) -> Self {
-        let mut condvars: Vec<Condition> = Vec::with_capacity(num_conds);
+    pub fn new(num_conds: u32) -> Self {
+        let mut condvars: Vec<Condition> = Vec::with_capacity(num_conds.try_into().expect("num_conds u32 must be convertible to usize"));
         for _cv in 0..num_conds {
             let condition = Condition::default();
             condvars.push(condition);

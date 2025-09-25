@@ -6,7 +6,7 @@ use crate::semaphore::BinarySemaphore;
 
 #[derive(Debug)]
 pub struct Condition {
-    pub waiting: Cell<usize>,
+    pub waiting: Cell<u32>,
     pub sem: BinarySemaphore,
 }
 
