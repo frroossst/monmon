@@ -2,6 +2,8 @@
 /// This macro essentially acts as a marker and does
 /// not enforce any synchronization itself.
 /// ```rust
+/// # use monmon_impl::critical_section;
+/// let mut x = 0;
 /// critical_section!({
 ///     x += 1;
 /// });

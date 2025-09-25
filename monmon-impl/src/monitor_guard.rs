@@ -4,8 +4,12 @@ use crate::monitors::Monitor;
 /// This ensures that the monitor is always properly released and is more
 /// rusty/idiomatic than manually calling enter/leave.
 /// ```rust
+/// use std::sync::Arc;
+/// use monmon_impl::semaphore_monitor::SemaphoreMonitor;
+/// use monmon_impl::monitor_guard::MonitorGuard;
+/// let monitor = Arc::new(SemaphoreMonitor::new(0));
 /// {
-///     let _guard = monitor.lock();
+///     let _guard = MonitorGuard::new(&*monitor);
 /// } // drop is called here, releasing the monitor
 /// ```
 pub struct MonitorGuard<'a, M: Monitor> {
