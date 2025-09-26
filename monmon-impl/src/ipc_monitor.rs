@@ -12,7 +12,7 @@ use std::{
 
 use crate::{
     condition_variables::Condition,
-    message::{Message, MonMessage, MESSAGE_SIZE},
+    message::{Message, MonMessage},
     monitors::Monitor,
 };
 
@@ -120,6 +120,7 @@ impl Monitor for IPCMonitorClient {
     }
 
     fn wait(&self, cv: usize) {
+        // compile time assertion ensures all 
         self.send(MonMessage::MonWait(cv));
     }
 
