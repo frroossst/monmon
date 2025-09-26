@@ -63,10 +63,16 @@ impl IPCMonitorServer {
     }
 
     pub fn receive(&mut self) -> Message {
+        // Accept a new connection and read from it
         let (mut stream, _) = self.listener.accept().expect("Failed to accept connection");
 
         let mut buf = [0; MESSAGE_SIZE];
         stream.read_exact(&mut buf).expect("Failed to read message");
+        
+        // Store the client connection for potential future use
+        let client_id = self.state.next_client_id.next().unwrap();
+        self.state.clients.insert(client_id, stream);
+        
         Message::decode(&buf).expect("Failed to decode message")
     }
 }
@@ -81,22 +87,28 @@ impl IPCMonitorClient {
     pub fn new(conn: UnixStream) -> Self {
         IPCMonitorClient {
             conn: RefCell::new(conn),
-            id: Some(1),
+            id: None,
         }
     }
 
-    pub fn send(&self, msg: MonMessage) {
-        let ser = Message::new(
-            self.id
-                .expect("Client must be registered before sending messages"),
-            msg,
-        );
-        let bytes = Message::encode(ser);
+    pub fn register(&mut self) {
+        let ser = Message::new
+    }
 
+    pub fn send(&self, msg: MonMessage) {
+        if self.id.is_none() {
+            panic!("Client not registered with server, must call register() first");
+        }
+
+        let ser = Message::new(self.id, msg);
+
+        let bytes = Message::encode(ser);
         self.conn
             .borrow_mut()
-            .write_all(&bytes.0)
+            .write_all(&bytes)
             .expect("Failed to send message");
+
+        Ok(())
     }
 }
 

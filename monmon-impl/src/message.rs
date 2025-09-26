@@ -16,6 +16,7 @@ pub trait Communication {
 /// Message types for the IPC monitor
 #[derive(Debug, bincode::Encode, bincode::Decode, PartialEq)]
 pub enum MonMessage {
+    MonRegister,
     MonEnter,
     MonLeave,
     MonWait(usize),
@@ -25,7 +26,7 @@ pub enum MonMessage {
 
 #[derive(Debug, bincode::Encode, bincode::Decode)]
 pub struct Message {
-    pub sender: u32,
+    pub sender: Option<u32>,
     pub msg: MonMessage,
 }
 
@@ -34,14 +35,16 @@ pub const SIZEOF_U32: usize = std::mem::size_of::<u32>();
 pub const MESSAGE_SIZE: usize = SIZEOF_U32 + 2 * SIZEOF_USIZE;
 
 impl Message {
-    pub fn new(sender: u32, msg: MonMessage) -> Self {
+    pub fn new(sender: Option<u32>, msg: MonMessage) -> Self {
         Message { sender, msg }
     }
 
-    pub fn encode(msg: Message) -> (Vec<u8>, usize) {
-        let ser = bincode::encode_to_vec(msg, bincode::config::standard()).unwrap();
-        let len = ser.len();
-        (ser, len)
+    pub fn encode(msg: Message) -> Vec<u8> {
+        let mut encoded = bincode::encode_to_vec(msg, bincode::config::standard()).unwrap();
+        
+        // Pad or truncate to MESSAGE_SIZE
+        encoded.resize(MESSAGE_SIZE, 0);
+        encoded
     }
 
     pub fn decode(buffer: &[u8]) -> Result<Message, bincode::error::DecodeError> {
