@@ -23,7 +23,11 @@ unsafe impl Sync for SemaphoreMonitor {}
 
 impl SemaphoreMonitor {
     pub fn new(num_conds: u32) -> Self {
-        let mut condvars: Vec<Condition> = Vec::with_capacity(num_conds.try_into().expect("num_conds u32 must be convertible to usize"));
+        let mut condvars: Vec<Condition> = Vec::with_capacity(
+            num_conds
+                .try_into()
+                .expect("num_conds u32 must be convertible to usize"),
+        );
         for _cv in 0..num_conds {
             let condition = Condition::default();
             condvars.push(condition);

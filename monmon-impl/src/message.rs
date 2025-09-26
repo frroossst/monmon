@@ -79,8 +79,9 @@ impl Message {
             .try_into()
             .map_err(|_| EncDecError::CorruptedMessage)?;
 
-        let cv_bytes: [u8; SIZEOF_USIZE] = buffer
-            [std::mem::size_of::<u32>() + std::mem::size_of::<usize>()..std::mem::size_of::<u32>() + 2 * std::mem::size_of::<usize>()]
+        let cv_bytes: [u8; SIZEOF_USIZE] = buffer[std::mem::size_of::<u32>()
+            + std::mem::size_of::<usize>()
+            ..std::mem::size_of::<u32>() + 2 * std::mem::size_of::<usize>()]
             .try_into()
             .map_err(|_| EncDecError::CorruptedMessage)?;
 

@@ -6,8 +6,10 @@
 use once_cell::sync::OnceCell;
 use std::{collections::HashMap, os::unix::net::UnixStream, sync::atomic::AtomicBool};
 
-use crate::{condition_variables::Condition, message::{Message, MonMessage}};
-
+use crate::{
+    condition_variables::Condition,
+    message::{Message, MonMessage},
+};
 
 static IPCSERVER_SINGLETON: OnceCell<AtomicBool> = OnceCell::new();
 
@@ -28,7 +30,11 @@ pub struct IPCMonitorServer {
 
 impl IPCMonitorServer {
     pub fn new(num_conds: u32) -> Self {
-        let mut condvars: Vec<Condition> = Vec::with_capacity(num_conds.try_into().expect("num_conds u32 must be convertible to usize"));
+        let mut condvars: Vec<Condition> = Vec::with_capacity(
+            num_conds
+                .try_into()
+                .expect("num_conds u32 must be convertible to usize"),
+        );
         for _cv in 0..num_conds {
             let condition = Condition::default();
             condvars.push(condition);
@@ -58,8 +64,10 @@ impl IPCMonitorClient {
     }
 
     pub fn send(&self, msg: MonMessage) {
-        let ser = Message::new(self.id.expect("Client must be registered before sending messages"), msg);
+        let ser = Message::new(
+            self.id
+                .expect("Client must be registered before sending messages"),
+            msg,
+        );
     }
-
 }
-

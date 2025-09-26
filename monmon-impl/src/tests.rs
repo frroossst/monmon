@@ -10,9 +10,7 @@ pub mod tests {
         let (encode, bytes) = Message::encode(msg);
         assert_eq!(
             encode,
-            vec![
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-            ]
+            vec![0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         );
         assert_eq!(bytes, 20);
 
@@ -25,9 +23,7 @@ pub mod tests {
         let (encode, bytes) = Message::encode(msg);
         assert_eq!(
             encode,
-            vec![
-                0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0
-            ]
+            vec![0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
         );
         assert_eq!(bytes, 20);
 
@@ -43,9 +39,7 @@ pub mod tests {
         let (encode, bytes) = Message::encode(msg);
         assert_eq!(
             encode,
-            vec![
-                0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 9
-            ]
+            vec![0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 9]
         );
         assert_eq!(bytes, 20);
 
@@ -58,9 +52,7 @@ pub mod tests {
         let (encode, bytes) = Message::encode(msg);
         assert_eq!(
             encode,
-            vec![
-                0, 0, 0, 86, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 10
-            ]
+            vec![0, 0, 0, 86, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 10]
         );
         assert_eq!(bytes, 20);
 
