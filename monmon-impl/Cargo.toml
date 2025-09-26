@@ -5,4 +5,5 @@ edition = "2024"
 
 [dependencies]
 atomic-wait = "1.1.0"
+bincode = "2.0.1"
 once_cell = "1.21.3"

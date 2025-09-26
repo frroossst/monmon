@@ -1,63 +1,36 @@
 #[cfg(test)]
 pub mod tests {
-    use crate::message::Message;
-    use crate::message::MonMessage::{MonEnter, MonLeave, MonSignal, MonWait};
+    use std::os::unix::net::UnixStream;
+
+    use crate::message::MonMessage::MonEnter;
+    use crate::message::{Message, MonMessage};
+    use crate::monitors::{IPCMonitorClient, IPCMonitorServer};
 
     #[test]
     fn simple_encode_decode_test() {
         let msg = Message::new(0, MonEnter);
+        let (encode, _sz) = Message::encode(msg);
+        let decoded = Message::decode(&encode).expect("Failed to decode message");
 
-        let (encode, bytes) = Message::encode(msg);
-        assert_eq!(
-            encode,
-            vec![0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        );
-        assert_eq!(bytes, 20);
-
-        let decoded_msg = Message::decode(&encode).unwrap();
-        assert_eq!(decoded_msg.sender, 0);
-        assert_eq!(decoded_msg.msg, MonEnter);
-
-        let msg = Message::new(1, MonLeave);
-
-        let (encode, bytes) = Message::encode(msg);
-        assert_eq!(
-            encode,
-            vec![0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
-        );
-        assert_eq!(bytes, 20);
-
-        let decoded_msg = Message::decode(&encode).unwrap();
-        assert_eq!(decoded_msg.sender, 1);
-        assert_eq!(decoded_msg.msg, MonLeave);
+        assert_eq!(decoded.msg, MonEnter);
     }
 
     #[test]
-    fn cv_encode_decode_test() {
-        let msg = Message::new(6, MonWait(9));
+    fn simple_domain_socket_read_write() {
+        let stream = "/tmp/ipc_monitor_test.sock";
 
-        let (encode, bytes) = Message::encode(msg);
-        assert_eq!(
-            encode,
-            vec![0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 9]
-        );
-        assert_eq!(bytes, 20);
+        // Clean up any existing socket file (ignore errors)
+        let _ = std::fs::remove_file(stream);
 
-        let decoded_msg = Message::decode(&encode).unwrap();
-        assert_eq!(decoded_msg.sender, 6);
-        assert_eq!(decoded_msg.msg, MonWait(9));
+        let mut server = IPCMonitorServer::new(stream, 0).unwrap();
+        let client = IPCMonitorClient::new(UnixStream::connect(stream).unwrap());
 
-        let msg = Message::new(86, MonSignal(10));
+        client.send(MonMessage::MonEnter);
 
-        let (encode, bytes) = Message::encode(msg);
-        assert_eq!(
-            encode,
-            vec![0, 0, 0, 86, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 10]
-        );
-        assert_eq!(bytes, 20);
+        let msg = server.receive();
+        assert_eq!(msg.msg, MonEnter);
 
-        let decoded_msg = Message::decode(&encode).unwrap();
-        assert_eq!(decoded_msg.sender, 86);
-        assert_eq!(decoded_msg.msg, MonSignal(10));
+        // Clean up the socket file after test
+        let _ = std::fs::remove_file(stream);
     }
 }

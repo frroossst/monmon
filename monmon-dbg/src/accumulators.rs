@@ -243,6 +243,13 @@ pub fn futex_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceConditio
     Box::new(race)
 }
 
-pub fn channels_multi_threaded_accumulator(_config: Arc<Config>) -> Box<RaceCondition<usize>> {
-    unimplemented!()
+pub fn ipc_monitor_multi_threaded_accumulator(_config: Arc<Config>) -> Box<RaceCondition<usize>> {
+    println!(
+        "{}",
+        "ipc_monitor_multi_threaded_accumulator"
+            .to_string()
+            .bright_cyan()
+            .italic()
+    );
+    unimplemented!();
 }

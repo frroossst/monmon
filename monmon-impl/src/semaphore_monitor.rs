@@ -68,7 +68,7 @@ impl Monitor for SemaphoreMonitor {
             panic!("wait: Condition index out of bounds");
         }
 
-        let cond = &self.condvars[condition];
+        let cond = self.condvars.get(condition).expect("Out of bounds");
 
         // 1. Indicate intention to wait on this condition.
         cond.waiting.set(cond.waiting.get() + 1);
@@ -118,7 +118,7 @@ impl Monitor for SemaphoreMonitor {
 
         // Only proceed if there is actually a thread waiting on this condition.
         // Crucially, check `waiting` *before* potentially blocking self on enter_queue.
-        let cond = &self.condvars[condition];
+        let cond = self.condvars.get(condition).expect("Out of bounds");
         if cond.waiting.get() > 0 {
             // A thread is waiting, so we will perform the signal-and-wait dance.
 

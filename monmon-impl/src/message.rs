@@ -13,22 +13,17 @@ pub trait Communication {
     fn reply(&self, msg: MonMessage);
 }
 
-#[derive(Debug)]
-pub enum EncDecError {
-    CorruptedMessage,
-    InvalidMessage,
-}
-
-#[derive(Debug, PartialEq)]
 /// Message types for the IPC monitor
+#[derive(Debug, bincode::Encode, bincode::Decode, PartialEq)]
 pub enum MonMessage {
     MonEnter,
     MonLeave,
     MonWait(usize),
     MonSignal(usize),
+    MonBroadcast(usize),
 }
 
-#[derive(Debug)]
+#[derive(Debug, bincode::Encode, bincode::Decode)]
 pub struct Message {
     pub sender: u32,
     pub msg: MonMessage,
@@ -44,59 +39,13 @@ impl Message {
     }
 
     pub fn encode(msg: Message) -> (Vec<u8>, usize) {
-        let sender_bytes = msg.sender.to_be_bytes();
-
-        let mut cv_bytes = (0_usize).to_be_bytes();
-        let msg_bytes = match msg.msg {
-            MonMessage::MonEnter => (0_usize).to_be_bytes(),
-            MonMessage::MonLeave => (1_usize).to_be_bytes(),
-            MonMessage::MonWait(cv) => {
-                cv_bytes = cv.to_be_bytes();
-                (2_usize).to_be_bytes()
-            }
-            MonMessage::MonSignal(cv) => {
-                cv_bytes = cv.to_be_bytes();
-                (3_usize).to_be_bytes()
-            }
-        };
-
-        let mut buffer = [0u8; SIZEOF_U32 + 2 * SIZEOF_USIZE];
-
-        buffer[0..SIZEOF_U32].copy_from_slice(&sender_bytes);
-        buffer[SIZEOF_U32..SIZEOF_U32 + SIZEOF_USIZE].copy_from_slice(&msg_bytes);
-        buffer[SIZEOF_U32 + SIZEOF_USIZE..SIZEOF_U32 + 2 * SIZEOF_USIZE].copy_from_slice(&cv_bytes);
-
-        (buffer.to_vec(), MESSAGE_SIZE)
+        let ser = bincode::encode_to_vec(msg, bincode::config::standard()).unwrap();
+        let len = ser.len();
+        (ser, len)
     }
 
-    pub fn decode(buffer: &[u8]) -> Result<Message, EncDecError> {
-        let sender_bytes: [u8; SIZEOF_U32] = buffer[0..std::mem::size_of::<u32>()]
-            .try_into()
-            .map_err(|_| EncDecError::CorruptedMessage)?;
-
-        let msg_bytes: [u8; SIZEOF_USIZE] = buffer
-            [std::mem::size_of::<u32>()..std::mem::size_of::<u32>() + std::mem::size_of::<usize>()]
-            .try_into()
-            .map_err(|_| EncDecError::CorruptedMessage)?;
-
-        let cv_bytes: [u8; SIZEOF_USIZE] = buffer[std::mem::size_of::<u32>()
-            + std::mem::size_of::<usize>()
-            ..std::mem::size_of::<u32>() + 2 * std::mem::size_of::<usize>()]
-            .try_into()
-            .map_err(|_| EncDecError::CorruptedMessage)?;
-
-        let sender = u32::from_be_bytes(sender_bytes);
-        let msg_type = usize::from_be_bytes(msg_bytes);
-        let cv = usize::from_be_bytes(cv_bytes);
-
-        let msg = match msg_type {
-            0 => MonMessage::MonEnter,
-            1 => MonMessage::MonLeave,
-            2 => MonMessage::MonWait(cv),
-            3 => MonMessage::MonSignal(cv),
-            _ => return Err(EncDecError::InvalidMessage),
-        };
-
-        Ok(Message { sender, msg })
+    pub fn decode(buffer: &[u8]) -> Result<Message, bincode::error::DecodeError> {
+        let deser = bincode::decode_from_slice(buffer, bincode::config::standard());
+        deser.map(|(msg, _)| msg)
     }
 }
