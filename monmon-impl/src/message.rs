@@ -1,3 +1,5 @@
+use std::num::NonZero;
+
 /*
  * ############################################################################
  * #                                                                          #
@@ -13,6 +15,8 @@ pub trait Communication {
     fn reply(&self, msg: MonMessage);
 }
 
+pub const MESSAGE_SIZE: usize = 16;
+
 /// Message types for the IPC monitor
 #[derive(Debug, bincode::Encode, bincode::Decode, PartialEq)]
 pub enum MonMessage {
@@ -26,25 +30,31 @@ pub enum MonMessage {
 
 #[derive(Debug, bincode::Encode, bincode::Decode)]
 pub struct Message {
-    pub sender: Option<u32>,
+    pub sender: NonZero<u64>,
     pub msg: MonMessage,
 }
 
-pub const SIZEOF_USIZE: usize = std::mem::size_of::<usize>();
-pub const SIZEOF_U32: usize = std::mem::size_of::<u32>();
-pub const MESSAGE_SIZE: usize = SIZEOF_U32 + 2 * SIZEOF_USIZE;
-
 impl Message {
-    pub fn new(sender: Option<u32>, msg: MonMessage) -> Self {
-        Message { sender, msg }
+    /// The common use case does not need to specify the sender
+    /// it automatically uses the current thread ID
+    /// But an API is provided to specify it manually if needed
+    /// Underllying type is simple a NonZero<u64> to be compatible with ThreadId::as_u64()
+    pub fn new(msg: MonMessage) -> Self {
+        let tid = std::thread::current().id();
+        Message { 
+            sender: tid.as_u64(),
+            msg }
+    }
+
+    pub fn set_sender(&mut self, sender: NonZero<u64>) {
+        self.sender = sender;
     }
 
     pub fn encode(msg: Message) -> Vec<u8> {
-        let mut encoded = bincode::encode_to_vec(msg, bincode::config::standard()).unwrap();
-        
-        // Pad or truncate to MESSAGE_SIZE
-        encoded.resize(MESSAGE_SIZE, 0);
-        encoded
+        let mut ser = bincode::encode_to_vec(msg, bincode::config::standard()).unwrap();
+        assert!(ser.len() <= MESSAGE_SIZE, "Message too large to encode");
+        ser.resize(MESSAGE_SIZE, 0);
+        ser
     }
 
     pub fn decode(buffer: &[u8]) -> Result<Message, bincode::error::DecodeError> {

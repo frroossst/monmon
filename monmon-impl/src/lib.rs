@@ -1,3 +1,5 @@
+#![feature(thread_id_value)]
+
 // Core modules
 pub mod condition_variables;
 pub mod message;

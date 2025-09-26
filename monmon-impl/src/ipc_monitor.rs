@@ -12,7 +12,7 @@ use std::{
 
 use crate::{
     condition_variables::Condition,
-    message::{MESSAGE_SIZE, Message, MonMessage},
+    message::{Message, MonMessage, MESSAGE_SIZE},
     monitors::Monitor,
 };
 
@@ -66,7 +66,7 @@ impl IPCMonitorServer {
         // Accept a new connection and read from it
         let (mut stream, _) = self.listener.accept().expect("Failed to accept connection");
 
-        let mut buf = [0; MESSAGE_SIZE];
+        let mut buf = Vec::new();
         stream.read_exact(&mut buf).expect("Failed to read message");
         
         // Store the client connection for potential future use
@@ -92,7 +92,6 @@ impl IPCMonitorClient {
     }
 
     pub fn register(&mut self) {
-        let ser = Message::new
     }
 
     pub fn send(&self, msg: MonMessage) {
@@ -100,15 +99,14 @@ impl IPCMonitorClient {
             panic!("Client not registered with server, must call register() first");
         }
 
-        let ser = Message::new(self.id, msg);
-
+        let ser = Message::new(msg);
         let bytes = Message::encode(ser);
+
         self.conn
             .borrow_mut()
             .write_all(&bytes)
             .expect("Failed to send message");
 
-        Ok(())
     }
 }
 
