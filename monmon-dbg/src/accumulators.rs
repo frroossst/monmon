@@ -204,45 +204,6 @@ pub fn binary_semaphore_multi_threaded_accumulator(
     Box::new(race)
 }
 
-pub fn happylock_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition<usize>> {
-    println!(
-        "{}",
-        "happylock_multi_threaded_accumulator()"
-            .to_string()
-            .bright_cyan()
-            .italic()
-    );
-    let counter = Arc::new(UnsafeSharedAccumulator::default());
-    let mut handles = vec![];
-
-    let monitor = Arc::new(happylock::Mutex::new(()));
-
-    for _ in 0..config.num_producer {
-        let accum = counter.clone();
-        let config = config.clone();
-        let monitor = monitor.clone();
-        let handle = thread::spawn(move || {
-            for _ in 0..config.per_producer {
-                critical_section!({
-                    let key = happylock::ThreadKey::get().unwrap();
-                    let _unused = monitor.lock(key);
-                    accum.increment();
-                })
-            }
-        });
-        handles.push(handle);
-    }
-
-    // Join all producer threads
-    for handle in handles {
-        handle.join().unwrap();
-    }
-
-    let expected = config.num_producer * config.per_producer;
-    let race = RaceCondition::new(expected, counter.get());
-    Box::new(race)
-}
-
 pub fn futex_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition<usize>> {
     println!(
         "{}",

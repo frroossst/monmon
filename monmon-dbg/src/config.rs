@@ -9,8 +9,6 @@ pub enum RaceKind {
     StdlibMutexBuffer,
     BinarySemaphoreAccum,
     BinarySemaphoreBuffer,
-    HappyLockAccum,
-    HappyLockBuffer,
     SemaphoreMonitorAccum,
     SemaphoreMonitorBuffer,
     FutexMonitorAccum,

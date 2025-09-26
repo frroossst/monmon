@@ -292,61 +292,6 @@ pub fn binary_semaphore_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCo
     Box::new(race)
 }
 
-pub fn happylock_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondition<i64>> {
-    println!(
-        "{}",
-        "happylock_multi_threaded_buffer()"
-            .to_string()
-            .bright_cyan()
-            .italic()
-    );
-    let counter = Arc::new(UnsafeSharedBuffer::default());
-    let mut handles = vec![];
-
-    let monitor = Arc::new(happylock::Mutex::new(()));
-
-    for _ in 0..config.num_producer {
-        let accum = counter.clone();
-        let config = config.clone();
-        let monitor = monitor.clone();
-        let handle = thread::spawn(move || {
-            for _ in 0..config.per_producer {
-                critical_section!({
-                    let key = happylock::ThreadKey::get().unwrap();
-                    let _unused = monitor.lock(key);
-                    accum.produce();
-                })
-            }
-        });
-        handles.push(handle);
-    }
-
-    for _ in 0..config.num_producer {
-        let accum = counter.clone();
-        let config = config.clone();
-        let monitor = monitor.clone();
-        let handle = thread::spawn(move || {
-            for _ in 0..config.per_producer {
-                critical_section!({
-                    let key = happylock::ThreadKey::get().unwrap();
-                    let _unused = monitor.lock(key);
-                    accum.consume();
-                })
-            }
-        });
-        handles.push(handle);
-    }
-
-    // Join all producer threads
-    for handle in handles {
-        handle.join().unwrap();
-    }
-
-    let expected = 0;
-    let race = RaceCondition::new(expected, counter.get());
-    Box::new(race)
-}
-
 pub fn futex_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondition<i64>> {
     println!(
         "{}",

@@ -44,14 +44,6 @@ fn race(racekind: RaceKind, config: Arc<Config>) {
             let r = std::hint::black_box(binary_semaphore_multi_threaded_buffer(config));
             buffer_race_condition = Some(*r);
         }
-        RaceKind::HappyLockAccum => {
-            let r = std::hint::black_box(happylock_multi_threaded_accumulator(config));
-            accum_race_condition = Some(*r);
-        }
-        RaceKind::HappyLockBuffer => {
-            let r = std::hint::black_box(happylock_multi_threaded_buffer(config));
-            buffer_race_condition = Some(*r);
-        }
         RaceKind::FutexMonitorAccum => {
             let r = std::hint::black_box(futex_multi_threaded_accumulator(config));
             accum_race_condition = Some(*r);
@@ -105,6 +97,4 @@ fn main() {
     race(RaceKind::StdlibMutexBuffer, config.clone());
     race(RaceKind::BinarySemaphoreAccum, config.clone());
     race(RaceKind::BinarySemaphoreBuffer, config.clone());
-    race(RaceKind::HappyLockAccum, config.clone());
-    race(RaceKind::HappyLockBuffer, config.clone());
 }
