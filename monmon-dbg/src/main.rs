@@ -65,7 +65,7 @@ fn race(racekind: RaceKind, config: Arc<Config>) {
     let elapsed = start.elapsed().as_millis();
     println!("{}", format!("{} ms", elapsed).yellow());
 
-    println!("==========================");
+    println!("{}", "=".repeat(80));
     println!();
 }
 

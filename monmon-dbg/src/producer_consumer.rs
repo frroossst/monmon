@@ -295,7 +295,7 @@ pub fn binary_semaphore_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCo
 pub fn futex_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondition<i64>> {
     println!(
         "{}",
-        "futex_multi_threaded_buffer()"
+        "futex_monitor_multi_threaded_buffer()"
             .to_string()
             .bright_cyan()
             .italic()

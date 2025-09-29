@@ -207,7 +207,7 @@ pub fn binary_semaphore_multi_threaded_accumulator(
 pub fn futex_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition<usize>> {
     println!(
         "{}",
-        "futex_multi_threaded_accumulator()"
+        "futex_monitor_multi_threaded_accumulator()"
             .to_string()
             .bright_cyan()
             .italic()
