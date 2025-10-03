@@ -83,6 +83,7 @@ version = "0.1.0"
 dependencies = [
  "colored",
  "monmon-impl",
+ "monmon-proc",
  "num-traits",
  "rand",
 ]
@@ -94,6 +95,14 @@ dependencies = [
  "atomic-wait",
  "bincode",
  "once_cell",
+]
+
+[[package]]
+name = "monmon-proc"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
 ]
 
 [[package]]

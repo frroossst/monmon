@@ -1,7 +1,7 @@
 #[cfg(test)]
 pub mod tests {
 
-    use crate::message::{Message, MonMessage::{self, MonEnter}, MESSAGE_SIZE};
+    use crate::{message::{Message, MonMessage::{self, MonEnter}, MESSAGE_SIZE}, monitors::{IPCMonitorClient, IPCMonitorServer}};
 
     #[test]
     fn simple_encode_decode_test() {
@@ -29,5 +29,6 @@ pub mod tests {
 
     #[test]
     fn simple_domain_socket_read_write() {
+        unimplemented!()
     }
 }
