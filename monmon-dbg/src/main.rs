@@ -71,19 +71,7 @@ fn race(racekind: RaceKind, config: Arc<Config>) {
     println!();
 }
 
-#[synchronised]
-fn foo(a: i32) {
-    a;
-}
-
 fn main() {
-
-    {
-        let m = SemaphoreMonitor::new(0);
-        foo(4 );
-    }
-
-
     let mut args = std::env::args();
     let _program = args.next().expect("program name expected");
 

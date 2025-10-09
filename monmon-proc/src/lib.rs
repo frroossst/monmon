@@ -1,6 +1,12 @@
+use syn::Error;
+
 use quote::{quote, ToTokens};
 use proc_macro::TokenStream;
-use syn::parse_macro_input;
+use syn::{parse_macro_input, spanned::Spanned};
+
+fn report_error<T: Spanned>(span: T, message: &str) -> TokenStream {
+    Error::new(span.span(), message).into_compile_error().into()
+}
 
 #[proc_macro_attribute]
 pub fn synchronised(_attr: TokenStream, item: TokenStream) -> TokenStream {
@@ -31,7 +37,7 @@ pub fn synchronised(_attr: TokenStream, item: TokenStream) -> TokenStream {
     }
 
     if mon_arg.is_none() {
-        panic!("No argument of type &impl Monitor found");
+        return report_error(input.sig.paren_token.span.clone(), "No argument of type &impl Monitor found");
     }
 
     let mon_arg = mon_arg.unwrap();
