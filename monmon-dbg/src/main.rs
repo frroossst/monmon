@@ -1,12 +1,12 @@
 use colored::Colorize;
-use monmon_proc::synchronised;
+use monmon_impl::monitors::{Monitor, SemaphoreMonitor};
 use std::sync::Arc;
 
 use monmon_dbg::accumulators::*;
 use monmon_dbg::config::{Config, ConfigKind, RaceCondition, RaceKind};
 use monmon_dbg::producer_consumer::*;
+use monmon_proc::synchronised;
 
-#[synchronised]
 fn race(racekind: RaceKind, config: Arc<Config>) {
     let start = std::time::Instant::now();
 
@@ -71,7 +71,19 @@ fn race(racekind: RaceKind, config: Arc<Config>) {
     println!();
 }
 
+#[synchronised]
+fn foo(a: i32) {
+    a;
+}
+
 fn main() {
+
+    {
+        let m = SemaphoreMonitor::new(0);
+        foo(4 );
+    }
+
+
     let mut args = std::env::args();
     let _program = args.next().expect("program name expected");
 
