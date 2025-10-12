@@ -13,6 +13,7 @@ pub enum RaceKind {
     SemaphoreMonitorBuffer,
     FutexMonitorAccum,
     FutexMonitorBuffer,
+    SyncProcMacroAccum,
 }
 
 #[derive(Debug)]

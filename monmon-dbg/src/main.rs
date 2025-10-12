@@ -1,11 +1,13 @@
 use colored::Colorize;
-use monmon_impl::monitors::{Monitor, SemaphoreMonitor};
+use monmon_dbg::sync_macro::SyncedStruct;
+use monmon_impl::monitors::Monitor;
+use monmon_proc::synchronised;
+use core::panic;
 use std::sync::Arc;
 
 use monmon_dbg::accumulators::*;
 use monmon_dbg::config::{Config, ConfigKind, RaceCondition, RaceKind};
 use monmon_dbg::producer_consumer::*;
-use monmon_proc::synchronised;
 
 fn race(racekind: RaceKind, config: Arc<Config>) {
     let start = std::time::Instant::now();
@@ -54,6 +56,10 @@ fn race(racekind: RaceKind, config: Arc<Config>) {
             let r = std::hint::black_box(futex_multi_threaded_buffer(config));
             buffer_race_condition = Some(*r);
         }
+        RaceKind::SyncProcMacroAccum => {
+            let r = std::hint::black_box(proc_macro_multi_threaded_accumulator(config));
+            accum_race_condition = Some(*r);
+        }
     };
 
     if let Some(r) = accum_race_condition {
@@ -72,6 +78,8 @@ fn race(racekind: RaceKind, config: Arc<Config>) {
 }
 
 fn main() {
+
+
     let mut args = std::env::args();
     let _program = args.next().expect("program name expected");
 
@@ -85,6 +93,10 @@ fn main() {
     println!("{:?}", config);
 
     let config = Arc::new(config);
+    
+    let r = proc_macro_multi_threaded_accumulator(config);
+    dbg!(r);
+    unimplemented!();
 
     #[cfg(not(miri))]
     {

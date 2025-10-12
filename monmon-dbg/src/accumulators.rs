@@ -10,7 +10,7 @@ use monmon_impl::{
     semaphore::BinarySemaphore, semaphore_monitor::SemaphoreMonitor,
 };
 
-use crate::config::{Config, RaceCondition};
+use crate::{config::{Config, RaceCondition}, sync_macro::SyncedStruct};
 
 #[derive(Debug)]
 pub struct UnsafeSharedAccumulator {
@@ -252,4 +252,41 @@ pub fn ipc_monitor_multi_threaded_accumulator(_config: Arc<Config>) -> Box<RaceC
             .italic()
     );
     unimplemented!();
+}
+
+pub fn proc_macro_multi_threaded_accumulator(
+    config: Arc<Config>,
+) -> Box<RaceCondition<usize>> {
+    println!(
+        "{}",
+        "proc_macro_multi_threaded_accumulator()"
+            .to_string()
+            .bright_cyan()
+            .italic()
+    );
+    let mut handles = vec![];
+
+    let ss = Arc::new(SyncedStruct::new());
+
+    for _ in 0..config.num_producer {
+        let config = config.clone();
+        let ss = ss.clone();
+        let handle = thread::spawn(move || {
+            for _ in 0..config.per_producer {
+                critical_section!({
+                    ss.increment();
+                })
+            }
+        });
+        handles.push(handle);
+    }
+
+    // Join all producer threads
+    for handle in handles {
+        handle.join().unwrap();
+    }
+
+    let expected = config.num_producer * config.per_producer;
+    let race = RaceCondition::new(expected, ss.get_counter());
+    Box::new(race)
 }
