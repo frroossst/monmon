@@ -9,15 +9,15 @@ use monmon_proc::synchronised;
 // the function should call enter() on the monitor at the start of the function
 // and leave() on the monitor at the end of the function
 
-pub struct SyncedStruct {
+pub struct SyncStruct {
     monitor: SemaphoreMonitor,
     counter: UnsafeCell<usize>,
 }
 
 // SAFETY: This is safe because access to the counter is synchronized through the monitor
-unsafe impl Sync for SyncedStruct {}
+unsafe impl Sync for SyncStruct {}
 
-impl SyncedStruct {
+impl SyncStruct {
     pub fn new() -> Self {
         Self {
             monitor: SemaphoreMonitor::new(1),

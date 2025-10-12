@@ -10,7 +10,7 @@ use monmon_impl::{
     semaphore::BinarySemaphore, semaphore_monitor::SemaphoreMonitor,
 };
 
-use crate::{config::{Config, RaceCondition}, sync_macro::SyncedStruct};
+use crate::{config::{Config, RaceCondition}, sync_macro::SyncStruct};
 
 #[derive(Debug)]
 pub struct UnsafeSharedAccumulator {
@@ -266,7 +266,7 @@ pub fn proc_macro_multi_threaded_accumulator(
     );
     let mut handles = vec![];
 
-    let ss = Arc::new(SyncedStruct::new());
+    let ss = Arc::new(SyncStruct::new());
 
     for _ in 0..config.num_producer {
         let config = config.clone();

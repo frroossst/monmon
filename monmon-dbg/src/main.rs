@@ -1,8 +1,4 @@
 use colored::Colorize;
-use monmon_dbg::sync_macro::SyncedStruct;
-use monmon_impl::monitors::Monitor;
-use monmon_proc::synchronised;
-use core::panic;
 use std::sync::Arc;
 
 use monmon_dbg::accumulators::*;
@@ -78,8 +74,6 @@ fn race(racekind: RaceKind, config: Arc<Config>) {
 }
 
 fn main() {
-
-
     let mut args = std::env::args();
     let _program = args.next().expect("program name expected");
 
@@ -91,12 +85,7 @@ fn main() {
     };
 
     println!("{:?}", config);
-
     let config = Arc::new(config);
-    
-    let r = proc_macro_multi_threaded_accumulator(config);
-    dbg!(r);
-    unimplemented!();
 
     #[cfg(not(miri))]
     {
@@ -107,6 +96,7 @@ fn main() {
     race(RaceKind::SemaphoreMonitorBuffer, config.clone());
     race(RaceKind::FutexMonitorAccum, config.clone());
     race(RaceKind::FutexMonitorBuffer, config.clone());
+    race(RaceKind::SyncProcMacroAccum, config.clone());
     race(RaceKind::StdlibMutexAccum, config.clone());
     race(RaceKind::StdlibMutexBuffer, config.clone());
     race(RaceKind::BinarySemaphoreAccum, config.clone());
