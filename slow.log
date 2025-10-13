@@ -1,0 +1,60 @@
+Config { _mode: Slow, num_producer: 1024, per_producer: 50 }
+unsafe_multi_threaded_accumulator()
+[RACE CONDITION]
+Expected: 51200, Actual: 212
+Missing items: 50988
+4617 ms
+================================================================================
+
+unsafe_multi_threaded_buffer()
+[RACE CONDITION]
+Expected: 0, Actual: -4
+Missing items: 4
+8709 ms
+================================================================================
+
+sem_monitor_multi_threaded_accumulator()
+[NO RACE]
+2579270 ms
+================================================================================
+
+sem_monitor_multi_threaded_buffer()
+[NO RACE]
+6751756 ms
+================================================================================
+
+futex_monitor_multi_threaded_accumulator()
+[NO RACE]
+1717261 ms
+================================================================================
+
+futex_monitor_multi_threaded_buffer()
+[NO RACE]
+3410059 ms
+================================================================================
+
+proc_macro_multi_threaded_accumulator()
+[NO RACE]
+2422032 ms
+================================================================================
+
+stdlib_mutex_multi_threaded_accumulator()
+[NO RACE]
+1714076 ms
+================================================================================
+
+stdlib_mutex_multi_threaded_buffer()
+[NO RACE]
+3416102 ms
+================================================================================
+
+binary_semaphore_multi_threaded_accumulator()
+[NO RACE]
+2364813 ms
+================================================================================
+
+binary_semaphore_multi_threaded_buffer()
+[NO RACE]
+6598175 ms
+================================================================================
+
