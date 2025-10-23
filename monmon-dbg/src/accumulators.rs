@@ -10,7 +10,10 @@ use monmon_impl::{
     semaphore::BinarySemaphore, semaphore_monitor::SemaphoreMonitor,
 };
 
-use crate::{config::{Config, RaceCondition}, sync_macro::SyncStruct};
+use crate::{
+    config::{Config, RaceCondition},
+    sync_macro::SyncStruct,
+};
 
 #[derive(Debug)]
 pub struct UnsafeSharedAccumulator {
@@ -254,9 +257,7 @@ pub fn ipc_monitor_multi_threaded_accumulator(_config: Arc<Config>) -> Box<RaceC
     unimplemented!();
 }
 
-pub fn proc_macro_multi_threaded_accumulator(
-    config: Arc<Config>,
-) -> Box<RaceCondition<usize>> {
+pub fn proc_macro_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition<usize>> {
     println!(
         "{}",
         "proc_macro_multi_threaded_accumulator()"

@@ -1,7 +1,7 @@
 use std::cell::UnsafeCell;
 
-use monmon_impl::monitors::SemaphoreMonitor;
 use monmon_impl::monitors::Monitor;
+use monmon_impl::monitors::SemaphoreMonitor;
 use monmon_proc::synchronised;
 
 // write a struct that demonstrates the use of the synchronised macro

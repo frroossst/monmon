@@ -41,9 +41,10 @@ impl Message {
     /// Underllying type is simple a `NonZero<u64>` to be compatible with ThreadId::as_u64()
     pub fn new(msg: MonMessage) -> Self {
         let tid = std::thread::current().id();
-        Message { 
+        Message {
             sender: tid.as_u64(),
-            msg }
+            msg,
+        }
     }
 
     pub fn set_sender(&mut self, sender: NonZero<u64>) {

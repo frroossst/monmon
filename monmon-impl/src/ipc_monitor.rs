@@ -3,14 +3,9 @@
 ///
 ///
 ///
-use std::{
-    collections::HashMap,
-    os::unix::net::UnixStream,
-};
+use std::{collections::HashMap, os::unix::net::UnixStream};
 
-use crate::
-    condition_variables::Condition
-;
+use crate::condition_variables::Condition;
 
 /// Internal state maintained by IPCMonitorServer instance
 struct MonitorState {
@@ -23,11 +18,7 @@ struct MonitorState {
 
 /// Implementing the monitor abstraction using IPC
 /// Uses Send/Receive/Reply, Send(s) are blocking
-pub struct IPCMonitorServer {
-}
-
+pub struct IPCMonitorServer {}
 
 /// Client side of IPC monitor implementation
-pub struct IPCMonitorClient {
-}
-
+pub struct IPCMonitorClient {}

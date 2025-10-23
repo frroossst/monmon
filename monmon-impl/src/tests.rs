@@ -1,7 +1,13 @@
 #[cfg(test)]
 pub mod tests {
 
-    use crate::{message::{Message, MonMessage::{self, MonEnter}, MESSAGE_SIZE}, monitors::{IPCMonitorClient, IPCMonitorServer}};
+    use crate::{
+        message::{
+            MESSAGE_SIZE, Message,
+            MonMessage::{self, MonEnter},
+        },
+        monitors::{IPCMonitorClient, IPCMonitorServer},
+    };
 
     #[test]
     fn simple_encode_decode_test() {
