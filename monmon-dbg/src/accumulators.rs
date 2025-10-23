@@ -267,7 +267,7 @@ pub fn proc_macro_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCon
     );
     let mut handles = vec![];
 
-    let ss = Arc::new(SyncStruct::new());
+    let ss = Arc::new(SyncStruct::default());
 
     for _ in 0..config.num_producer {
         let config = config.clone();

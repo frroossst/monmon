@@ -17,14 +17,16 @@ pub struct SyncStruct {
 // SAFETY: This is safe because access to the counter is synchronized through the monitor
 unsafe impl Sync for SyncStruct {}
 
-impl SyncStruct {
-    pub fn new() -> Self {
+impl Default for SyncStruct {
+    fn default() -> Self {
         Self {
             monitor: SemaphoreMonitor::new(1),
             counter: UnsafeCell::new(0),
         }
     }
+}
 
+impl SyncStruct {
     #[synchronised(self.monitor)]
     pub fn increment(&self) {
         // SAFETY: This is safe because access is synchronized through the monitor
