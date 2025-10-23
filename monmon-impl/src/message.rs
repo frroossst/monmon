@@ -38,7 +38,7 @@ impl Message {
     /// The common use case does not need to specify the sender
     /// it automatically uses the current thread ID
     /// But an API is provided to specify it manually if needed
-    /// Underllying type is simple a NonZero<u64> to be compatible with ThreadId::as_u64()
+    /// Underllying type is simple a `NonZero<u64>` to be compatible with ThreadId::as_u64()
     pub fn new(msg: MonMessage) -> Self {
         let tid = std::thread::current().id();
         Message { 
