@@ -18,17 +18,18 @@ pub fn synchronised(attr: TokenStream, item: TokenStream) -> TokenStream {
     // find the argument that has monitor type
     // find the first argument that has the signature `&impl Monitor`
     for arg in fn_args {
-        if let syn::FnArg::Typed(pat_type) = arg 
-            && let syn::Type::Reference(type_ref) = &*pat_type.ty 
-                && let syn::Type::ImplTrait(impl_trait) = &*type_ref.elem {
-                    for bound in &impl_trait.bounds {
-                        if let syn::TypeParamBound::Trait(trait_bound) = bound {
-                            let path = &trait_bound.path;
-                            if path.is_ident("Monitor") {
-                                mon_arg = Some(pat_type.pat.clone());
-                            }
-                        }
+        if let syn::FnArg::Typed(pat_type) = arg
+            && let syn::Type::Reference(type_ref) = &*pat_type.ty
+            && let syn::Type::ImplTrait(impl_trait) = &*type_ref.elem
+        {
+            for bound in &impl_trait.bounds {
+                if let syn::TypeParamBound::Trait(trait_bound) = bound {
+                    let path = &trait_bound.path;
+                    if path.is_ident("Monitor") {
+                        mon_arg = Some(pat_type.pat.clone());
                     }
+                }
+            }
         }
     }
 
