@@ -20,3 +20,7 @@ lto = true
 codegen-units = 1
 panic = "abort"
 
+[workspace.lints.clippy]
+pedantic = "deny"
+nursery  = "deny"
+

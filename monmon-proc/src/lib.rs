@@ -18,9 +18,9 @@ pub fn synchronised(attr: TokenStream, item: TokenStream) -> TokenStream {
     // find the argument that has monitor type
     // find the first argument that has the signature `&impl Monitor`
     for arg in fn_args {
-        if let syn::FnArg::Typed(pat_type) = arg {
-            if let syn::Type::Reference(type_ref) = &*pat_type.ty {
-                if let syn::Type::ImplTrait(impl_trait) = &*type_ref.elem {
+        if let syn::FnArg::Typed(pat_type) = arg 
+            && let syn::Type::Reference(type_ref) = &*pat_type.ty 
+                && let syn::Type::ImplTrait(impl_trait) = &*type_ref.elem {
                     for bound in &impl_trait.bounds {
                         if let syn::TypeParamBound::Trait(trait_bound) = bound {
                             let path = &trait_bound.path;
@@ -29,8 +29,6 @@ pub fn synchronised(attr: TokenStream, item: TokenStream) -> TokenStream {
                             }
                         }
                     }
-                }
-            }
         }
     }
 
@@ -39,7 +37,7 @@ pub fn synchronised(attr: TokenStream, item: TokenStream) -> TokenStream {
         // No attribute specified, try to find monitor parameter automatically
         if mon_arg.is_none() {
             return report_error(
-                input.sig.paren_token.span.clone(),
+                input.sig.paren_token.span,
                 "No argument of type &impl Monitor found",
             );
         }
@@ -55,7 +53,7 @@ pub fn synchronised(attr: TokenStream, item: TokenStream) -> TokenStream {
             Ok(expr) => expr,
             Err(_) => {
                 return report_error(
-                    input.sig.paren_token.span.clone(),
+                    input.sig.paren_token.span,
                     "Failed to parse attribute as expression",
                 );
             }
@@ -77,7 +75,7 @@ pub fn synchronised(attr: TokenStream, item: TokenStream) -> TokenStream {
             }
             _ => {
                 return report_error(
-                    input.sig.paren_token.span.clone(),
+                    input.sig.paren_token.span,
                     "Attribute expression must be a path, reference, or field access",
                 );
             }
