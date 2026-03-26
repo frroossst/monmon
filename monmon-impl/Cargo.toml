@@ -6,4 +6,3 @@ edition = "2024"
 [dependencies]
 atomic-wait = "1.1.0"
 bincode = "2.0.1"
-vox = { git = "https://github.com/bearcove/vox", version = "0.2.0" }
