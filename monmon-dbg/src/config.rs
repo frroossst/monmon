@@ -14,6 +14,8 @@ pub enum RaceKind {
     FutexMonitorAccum,
     FutexMonitorBuffer,
     SyncProcMacroAccum,
+    IPCMonitorAccum,
+    IPCMonitorBuffer,
 }
 
 #[derive(Debug)]

@@ -6,8 +6,8 @@ use std::{
 
 use colored::Colorize;
 use monmon_impl::{
-    critical_section, futex_monitor::FutexMonitor, monitor_trait::Monitor,
-    semaphore::BinarySemaphore, semaphore_monitor::SemaphoreMonitor,
+    critical_section, futex_monitor::FutexMonitor, ipc_monitor::create_ipc_monitor,
+    monitor_trait::Monitor, semaphore::BinarySemaphore, semaphore_monitor::SemaphoreMonitor,
 };
 
 use crate::config::{Config, RaceCondition};
@@ -363,6 +363,69 @@ pub fn futex_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondition<i64
     }
 
     // Join all threads
+    for handle in handles {
+        handle.join().unwrap();
+    }
+
+    let expected = 0;
+    let race = RaceCondition::new(expected, buffer.get());
+    Box::new(race)
+}
+
+pub fn ipc_monitor_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondition<i64>> {
+    println!(
+        "{}",
+        "ipc_monitor_multi_threaded_buffer()"
+            .to_string()
+            .bright_cyan()
+            .italic()
+    );
+
+    let buffer = Arc::new(UnsafeSharedBuffer::new());
+    let mut handles = vec![];
+
+    const BUFFER_NOT_EMPTY: usize = 0;
+    let (_server, client) = create_ipc_monitor(1);
+    let client = Arc::new(client);
+
+    // Producer threads
+    for _ in 0..config.num_producer {
+        let buffer = buffer.clone();
+        let config = config.clone();
+        let monitor = client.clone();
+        let handle = thread::spawn(move || {
+            for _ in 0..config.per_producer {
+                critical_section!({
+                    monitor.enter();
+                    buffer.produce();
+                    monitor.signal(BUFFER_NOT_EMPTY);
+                    monitor.leave();
+                })
+            }
+        });
+        handles.push(handle);
+    }
+
+    // Consumer threads
+    for _ in 0..config.num_producer {
+        let buffer = buffer.clone();
+        let config = config.clone();
+        let monitor = client.clone();
+        let handle = thread::spawn(move || {
+            for _ in 0..config.per_producer {
+                critical_section!({
+                    monitor.enter();
+                    if buffer.get() <= 0 {
+                        monitor.wait(BUFFER_NOT_EMPTY);
+                    }
+                    buffer.consume();
+                    monitor.leave();
+                })
+            }
+        });
+        handles.push(handle);
+    }
+
     for handle in handles {
         handle.join().unwrap();
     }

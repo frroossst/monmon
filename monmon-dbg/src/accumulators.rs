@@ -6,8 +6,8 @@ use std::{
 
 use colored::Colorize;
 use monmon_impl::{
-    critical_section, futex_monitor::FutexMonitor, monitor_trait::Monitor,
-    semaphore::BinarySemaphore, semaphore_monitor::SemaphoreMonitor,
+    critical_section, futex_monitor::FutexMonitor, ipc_monitor::create_ipc_monitor,
+    monitor_trait::Monitor, semaphore::BinarySemaphore, semaphore_monitor::SemaphoreMonitor,
 };
 
 use crate::{
@@ -246,15 +246,43 @@ pub fn futex_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceConditio
     Box::new(race)
 }
 
-pub fn ipc_monitor_multi_threaded_accumulator(_config: Arc<Config>) -> Box<RaceCondition<usize>> {
+pub fn ipc_monitor_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition<usize>> {
     println!(
         "{}",
-        "ipc_monitor_multi_threaded_accumulator"
+        "ipc_monitor_multi_threaded_accumulator()"
             .to_string()
             .bright_cyan()
             .italic()
     );
-    unimplemented!();
+
+    let (_server, client) = create_ipc_monitor(1);
+    let client = Arc::new(client);
+    let counter = Arc::new(UnsafeSharedAccumulator::default());
+    let mut handles = vec![];
+
+    for _ in 0..config.num_producer {
+        let accum = counter.clone();
+        let config = config.clone();
+        let monitor = client.clone();
+        let handle = thread::spawn(move || {
+            for _ in 0..config.per_producer {
+                critical_section!({
+                    monitor.enter();
+                    accum.increment();
+                    monitor.leave();
+                })
+            }
+        });
+        handles.push(handle);
+    }
+
+    for handle in handles {
+        handle.join().unwrap();
+    }
+
+    let expected = config.num_producer * config.per_producer;
+    let race = RaceCondition::new(expected, counter.get());
+    Box::new(race)
 }
 
 pub fn proc_macro_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition<usize>> {

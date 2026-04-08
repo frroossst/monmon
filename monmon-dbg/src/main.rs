@@ -56,6 +56,14 @@ fn race(racekind: RaceKind, config: Arc<Config>) {
             let r = std::hint::black_box(proc_macro_multi_threaded_accumulator(config));
             accum_race_condition = Some(*r);
         }
+        RaceKind::IPCMonitorAccum => {
+            let r = std::hint::black_box(ipc_monitor_multi_threaded_accumulator(config));
+            accum_race_condition = Some(*r);
+        }
+        RaceKind::IPCMonitorBuffer => {
+            let r = std::hint::black_box(ipc_monitor_multi_threaded_buffer(config));
+            buffer_race_condition = Some(*r);
+        }
     };
 
     if let Some(r) = accum_race_condition {
@@ -101,4 +109,6 @@ fn main() {
     race(RaceKind::StdlibMutexBuffer, config.clone());
     race(RaceKind::BinarySemaphoreAccum, config.clone());
     race(RaceKind::BinarySemaphoreBuffer, config.clone());
+    race(RaceKind::IPCMonitorAccum, config.clone());
+    race(RaceKind::IPCMonitorBuffer, config.clone());
 }
