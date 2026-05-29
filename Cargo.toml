@@ -21,13 +21,15 @@ codegen-units = 1
 panic = "abort"
 
 [workspace.lints.rust]
-unused                        = "deny"
+# Groups go first with priority = -1 so individual-lint overrides win.
+unused              = { level = "deny", priority = -1 }
+future_incompatible = { level = "warn", priority = -1 }
+nonstandard_style   = { level = "warn", priority = -1 }
+# Individual lints (priority 0 by default).
 dead_code                     = "deny"
 missing_debug_implementations = "warn"
-future_incompatible           = "warn"
-nonstandard_style             = "warn"
 
 [workspace.lints.clippy]
-pedantic = "warn"
-nursery  = "warn"
+pedantic = { level = "warn", priority = -1 }
+nursery  = { level = "warn", priority = -1 }
 
