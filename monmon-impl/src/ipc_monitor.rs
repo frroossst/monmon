@@ -286,7 +286,7 @@ impl IPCMonitorClient {
 
         // Fast path: stream already exists
         {
-            let map = self.streams.lock().unwrap();
+            let map = self.streams.lock().expect("unable to lock stream");
             if let Some(s) = map.get(&tid) {
                 return s.clone();
             }
@@ -296,23 +296,23 @@ impl IPCMonitorClient {
         let mut stream =
             UnixStream::connect(&self.socket_path).expect("Failed to connect to IPC server");
         let msg = Message::new(MonMessage::MonRegister);
-        stream.write_all(&Message::encode(msg)).unwrap();
+        stream.write_all(&Message::encode(msg)).expect("unable to write message to stream");
         let mut ack = [0u8; 1];
-        stream.read_exact(&mut ack).unwrap();
+        stream.read_exact(&mut ack).expect("unable to read exact message from stream");
 
         let arc = Arc::new(Mutex::new(stream));
-        self.streams.lock().unwrap().insert(tid, arc.clone());
+        self.streams.lock().expect("unable to lock stream").insert(tid, arc.clone());
         arc
     }
 
     /// Send a monitor message and block until the server ACKs
     fn send_and_wait(&self, mon_msg: MonMessage) {
         let stream_arc = self.get_stream();
-        let mut stream = stream_arc.lock().unwrap();
+        let mut stream = stream_arc.lock().expect("unable to acquire lock on stream");
         let msg = Message::new(mon_msg);
-        stream.write_all(&Message::encode(msg)).unwrap();
+        stream.write_all(&Message::encode(msg)).expect("unable to write message to stream");
         let mut ack = [0u8; 1];
-        stream.read_exact(&mut ack).unwrap();
+        stream.read_exact(&mut ack).expect("unable to read exact from stream");
     }
 }
 

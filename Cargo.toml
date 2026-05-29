@@ -32,4 +32,6 @@ dead_code                     = "deny"
 [workspace.lints.clippy]
 pedantic = { level = "warn", priority = -1 }
 nursery  = { level = "warn", priority = -1 }
+# Force `.expect("why")` over `.unwrap()` so panics carry an explanation.
+unwrap_used = "deny"
 

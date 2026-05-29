@@ -85,7 +85,7 @@ fn main() {
     let mut args = std::env::args();
     let _program = args.next().expect("program name expected");
 
-    let mode = args.next().unwrap_or("fast".into());
+    let mode = args.next().unwrap_or_else(|| "fast".into());
     let config = match mode.as_str() {
         "slow" => Config::new(ConfigKind::Slow),
         "medium" => Config::new(ConfigKind::Medium),

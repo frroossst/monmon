@@ -82,7 +82,7 @@ pub fn unsafe_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceConditi
 
     // Join all producer threads
     for handle in handles {
-        handle.join().unwrap();
+        handle.join().expect("unable to join thread handles");
     }
 
     let expected = config.num_producer * config.per_producer;
@@ -111,7 +111,7 @@ pub fn stdblib_mutex_multi_threaded_accumulator(config: Arc<Config>) -> Box<Race
         let handle = thread::spawn(move || {
             for _ in 0..config.per_producer {
                 critical_section!({
-                    let _unused = monitor.lock().unwrap();
+                    let _unused = monitor.lock().expect("unable to acquire lock on monitor via guard");
                     accum.increment();
                 });
             }
@@ -121,7 +121,7 @@ pub fn stdblib_mutex_multi_threaded_accumulator(config: Arc<Config>) -> Box<Race
 
     // Join all producer threads
     for handle in handles {
-        handle.join().unwrap();
+        handle.join().expect("unable to join thread handles");
     }
 
     let expected = config.num_producer * config.per_producer;
@@ -162,7 +162,7 @@ pub fn sem_monitor_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCo
 
     // Join all producer threads
     for handle in handles {
-        handle.join().unwrap();
+        handle.join().expect("unable to join thread handles");
     }
 
     let expected = config.num_producer * config.per_producer;
@@ -204,7 +204,7 @@ pub fn binary_semaphore_multi_threaded_accumulator(
 
     // Join all producer threads
     for handle in handles {
-        handle.join().unwrap();
+        handle.join().expect("unable to join thread handles");
     }
 
     let expected = config.num_producer * config.per_producer;
@@ -244,7 +244,7 @@ pub fn futex_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceConditio
 
     // Join all producer threads
     for handle in handles {
-        handle.join().unwrap();
+        handle.join().expect("unable to join thread handles");
     }
 
     let expected = config.num_producer * config.per_producer;
@@ -284,7 +284,7 @@ pub fn ipc_monitor_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCo
     }
 
     for handle in handles {
-        handle.join().unwrap();
+        handle.join().expect("unable to join thread handles");
     }
 
     let expected = config.num_producer * config.per_producer;
@@ -320,7 +320,7 @@ pub fn proc_macro_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCon
 
     // Join all producer threads
     for handle in handles {
-        handle.join().unwrap();
+        handle.join().expect("unable to join thread handles");
     }
 
     let expected = config.num_producer * config.per_producer;

@@ -98,7 +98,7 @@ pub fn unsafe_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondition<i6
     }
 
     for handle in handles {
-        handle.join().unwrap();
+        handle.join().expect("unable to join thread handles");
     }
 
     let expected: i64 = 0;
@@ -128,7 +128,7 @@ pub fn stdlib_mutex_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondit
         let handle = thread::spawn(move || {
             for _ in 0..config.per_producer {
                 critical_section!({
-                    let _guard = monitor.lock().unwrap();
+                    let _guard = monitor.lock().expect("unable to join thread handles");
                     accum.produce();
                 });
             }
@@ -143,7 +143,7 @@ pub fn stdlib_mutex_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondit
         let handle = thread::spawn(move || {
             for _ in 0..config.per_producer {
                 {
-                    let _guard = monitor.lock().unwrap();
+                    let _guard = monitor.lock().expect("unable to acquire lock on monitor via guard");
                     accum.consume();
                 }
             }
@@ -152,7 +152,7 @@ pub fn stdlib_mutex_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondit
     }
 
     for handle in handles {
-        handle.join().unwrap();
+        handle.join().expect("unable to join thread handles");
     }
 
     let expected: i64 = 0;
@@ -233,7 +233,7 @@ pub fn sem_monitor_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceConditi
 
     // Join all threads
     for handle in handles {
-        handle.join().unwrap();
+        handle.join().expect("unable to join thread handles");
     }
 
     let expected = 0;
@@ -289,7 +289,7 @@ pub fn binary_semaphore_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCo
 
     // Join all producer threads
     for handle in handles {
-        handle.join().unwrap();
+        handle.join().expect("unable to join thread handles");
     }
 
     let expected = 0;
@@ -370,7 +370,7 @@ pub fn futex_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondition<i64
 
     // Join all threads
     for handle in handles {
-        handle.join().unwrap();
+        handle.join().expect("unable to join thread handles");
     }
 
     let expected = 0;
@@ -434,7 +434,7 @@ pub fn ipc_monitor_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceConditi
     }
 
     for handle in handles {
-        handle.join().unwrap();
+        handle.join().expect("unable to join thread handles");
     }
 
     let expected = 0;

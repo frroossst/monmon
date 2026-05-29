@@ -44,7 +44,7 @@ pub fn synchronised(attr: TokenStream, item: TokenStream) -> TokenStream {
         }
 
         // Convert the pattern to an expression for consistency
-        let mon_pat = mon_arg.unwrap();
+        let mon_pat = mon_arg.expect("unable to extract pattern from monitor argument");
         syn::parse_quote! { #mon_pat }
     } else {
         // Parse the attribute as an expression
