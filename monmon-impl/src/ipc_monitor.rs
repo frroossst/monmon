@@ -182,8 +182,7 @@ impl IPCMonitorServer {
         // Acceptor thread — accepts connections and spawns per-client reader threads
         let shutdown_acceptor = shutdown.clone();
         let acceptor_handle = thread::spawn(move || {
-            let mut next_id = 0u32;
-            for stream_result in listener.incoming() {
+            for (next_id, stream_result) in listener.incoming().enumerate() {
                 if shutdown_acceptor.load(Ordering::Relaxed) {
                     break;
                 }
@@ -193,14 +192,14 @@ impl IPCMonitorServer {
                 };
 
                 let client_id = next_id;
-                next_id += 1;
+                // next_id += 1;
 
                 // Split: reader thread gets a clone, server gets the original for writing
                 let read_stream = stream.try_clone().expect("Failed to clone stream");
                 let write_stream = stream;
 
                 let _ = tx.send(ServerCommand::Register {
-                    client_id,
+                    client_id: client_id.try_into().expect("usize -> u32 shouldnt fail on modern machines"),
                     write_stream,
                 });
 
@@ -218,13 +217,15 @@ impl IPCMonitorServer {
                             Ok(()) => {
                                 if let Ok(decoded) = Message::decode(&buf) {
                                     let _ = tx_reader.send(ServerCommand::ClientMsg {
-                                        client_id,
+                                        client_id: client_id.try_into().expect("usize -> u32 shouldnt fail on modern machines"),
                                         msg: decoded.msg,
                                     });
                                 }
                             }
                             Err(_) => {
-                                let _ = tx_reader.send(ServerCommand::Disconnect { client_id });
+                                let _ = tx_reader.send(ServerCommand::Disconnect { 
+                                    client_id: client_id.try_into().expect("usize -> u32 shouldnt fail on modern machines"),
+                                });
                                 break;
                             }
                         }
