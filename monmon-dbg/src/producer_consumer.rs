@@ -27,8 +27,9 @@ impl Default for UnsafeSharedBuffer {
 }
 
 impl UnsafeSharedBuffer {
-    pub fn new() -> Self {
-        UnsafeSharedBuffer {
+    #[must_use]
+    pub const fn new() -> Self {
+        Self {
             value: UnsafeCell::new(0),
         }
     }
@@ -62,6 +63,7 @@ impl UnsafeSharedBuffer {
     }
 }
 
+#[must_use]
 pub fn unsafe_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondition<i64>> {
     println!(
         "{}",
@@ -104,6 +106,7 @@ pub fn unsafe_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondition<i6
     Box::new(race)
 }
 
+#[must_use]
 pub fn stdlib_mutex_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondition<i64>> {
     println!(
         "{}",
@@ -127,7 +130,7 @@ pub fn stdlib_mutex_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondit
                 critical_section!({
                     let _guard = monitor.lock().unwrap();
                     accum.produce();
-                })
+                });
             }
         });
         handles.push(handle);
@@ -157,6 +160,7 @@ pub fn stdlib_mutex_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondit
     Box::new(race)
 }
 
+#[must_use]
 pub fn sem_monitor_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondition<i64>> {
     println!(
         "{}",
@@ -194,7 +198,7 @@ pub fn sem_monitor_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceConditi
 
                     // Leave monitor (release lock)
                     monitor.leave();
-                })
+                });
             }
         });
         handles.push(handle);
@@ -221,7 +225,7 @@ pub fn sem_monitor_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceConditi
 
                     // Leave monitor (release lock)
                     monitor.leave();
-                })
+                });
             }
         });
         handles.push(handle);
@@ -237,6 +241,7 @@ pub fn sem_monitor_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceConditi
     Box::new(race)
 }
 
+#[must_use]
 pub fn binary_semaphore_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondition<i64>> {
     println!(
         "{}",
@@ -260,7 +265,7 @@ pub fn binary_semaphore_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCo
                     monitor.P_wait();
                     accum.produce();
                     monitor.V_signal();
-                })
+                });
             }
         });
         handles.push(handle);
@@ -276,7 +281,7 @@ pub fn binary_semaphore_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCo
                     monitor.P_wait();
                     accum.consume();
                     monitor.V_signal();
-                })
+                });
             }
         });
         handles.push(handle);
@@ -292,6 +297,7 @@ pub fn binary_semaphore_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCo
     Box::new(race)
 }
 
+#[must_use]
 pub fn futex_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondition<i64>> {
     println!(
         "{}",
@@ -329,7 +335,7 @@ pub fn futex_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondition<i64
 
                     // Leave monitor (release lock)
                     monitor.leave();
-                })
+                });
             }
         });
         handles.push(handle);
@@ -356,7 +362,7 @@ pub fn futex_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondition<i64
 
                     // Leave monitor (release lock)
                     monitor.leave();
-                })
+                });
             }
         });
         handles.push(handle);
@@ -372,6 +378,7 @@ pub fn futex_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondition<i64
     Box::new(race)
 }
 
+#[must_use]
 pub fn ipc_monitor_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondition<i64>> {
     println!(
         "{}",
@@ -400,7 +407,7 @@ pub fn ipc_monitor_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceConditi
                     buffer.produce();
                     monitor.signal(BUFFER_NOT_EMPTY);
                     monitor.leave();
-                })
+                });
             }
         });
         handles.push(handle);
@@ -420,7 +427,7 @@ pub fn ipc_monitor_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceConditi
                     }
                     buffer.consume();
                     monitor.leave();
-                })
+                });
             }
         });
         handles.push(handle);

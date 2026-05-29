@@ -30,8 +30,9 @@ impl Default for UnsafeSharedAccumulator {
 }
 
 impl UnsafeSharedAccumulator {
-    pub fn new() -> Self {
-        UnsafeSharedAccumulator {
+    #[must_use]
+    pub const fn new() -> Self {
+        Self {
             value: UnsafeCell::new(0),
         }
     }
@@ -54,6 +55,7 @@ impl UnsafeSharedAccumulator {
     }
 }
 
+#[must_use]
 pub fn unsafe_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition<usize>> {
     println!(
         "{}",
@@ -88,6 +90,7 @@ pub fn unsafe_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceConditi
     Box::new(race)
 }
 
+#[must_use]
 pub fn stdblib_mutex_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition<usize>> {
     println!(
         "{}",
@@ -110,7 +113,7 @@ pub fn stdblib_mutex_multi_threaded_accumulator(config: Arc<Config>) -> Box<Race
                 critical_section!({
                     let _unused = monitor.lock().unwrap();
                     accum.increment();
-                })
+                });
             }
         });
         handles.push(handle);
@@ -126,6 +129,7 @@ pub fn stdblib_mutex_multi_threaded_accumulator(config: Arc<Config>) -> Box<Race
     Box::new(race)
 }
 
+#[must_use]
 pub fn sem_monitor_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition<usize>> {
     println!(
         "{}",
@@ -150,7 +154,7 @@ pub fn sem_monitor_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCo
                     // monitor.enter();
                     accum.increment();
                     // monitor.leave();
-                })
+                });
             }
         });
         handles.push(handle);
@@ -166,6 +170,7 @@ pub fn sem_monitor_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCo
     Box::new(race)
 }
 
+#[must_use]
 pub fn binary_semaphore_multi_threaded_accumulator(
     config: Arc<Config>,
 ) -> Box<RaceCondition<usize>> {
@@ -191,7 +196,7 @@ pub fn binary_semaphore_multi_threaded_accumulator(
                     monitor.P_wait();
                     accum.increment();
                     monitor.V_signal();
-                })
+                });
             }
         });
         handles.push(handle);
@@ -207,6 +212,7 @@ pub fn binary_semaphore_multi_threaded_accumulator(
     Box::new(race)
 }
 
+#[must_use]
 pub fn futex_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition<usize>> {
     println!(
         "{}",
@@ -230,7 +236,7 @@ pub fn futex_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceConditio
                     monitor.enter();
                     accum.increment();
                     monitor.leave();
-                })
+                });
             }
         });
         handles.push(handle);
@@ -246,6 +252,7 @@ pub fn futex_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceConditio
     Box::new(race)
 }
 
+#[must_use]
 pub fn ipc_monitor_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition<usize>> {
     println!(
         "{}",
@@ -270,7 +277,7 @@ pub fn ipc_monitor_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCo
                     monitor.enter();
                     accum.increment();
                     monitor.leave();
-                })
+                });
             }
         });
         handles.push(handle);
@@ -285,6 +292,7 @@ pub fn ipc_monitor_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCo
     Box::new(race)
 }
 
+#[must_use]
 pub fn proc_macro_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition<usize>> {
     println!(
         "{}",
@@ -304,7 +312,7 @@ pub fn proc_macro_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCon
             for _ in 0..config.per_producer {
                 critical_section!({
                     ss.increment();
-                })
+                });
             }
         });
         handles.push(handle);

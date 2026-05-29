@@ -1,9 +1,9 @@
 use colored::Colorize;
 use std::sync::Arc;
 
-use monmon_dbg::accumulators::*;
+use monmon_dbg::accumulators::{unsafe_multi_threaded_accumulator, sem_monitor_multi_threaded_accumulator, stdblib_mutex_multi_threaded_accumulator, binary_semaphore_multi_threaded_accumulator, futex_multi_threaded_accumulator, proc_macro_multi_threaded_accumulator, ipc_monitor_multi_threaded_accumulator};
 use monmon_dbg::config::{Config, ConfigKind, RaceCondition, RaceKind};
-use monmon_dbg::producer_consumer::*;
+use monmon_dbg::producer_consumer::{unsafe_multi_threaded_buffer, sem_monitor_multi_threaded_buffer, stdlib_mutex_multi_threaded_buffer, binary_semaphore_multi_threaded_buffer, futex_multi_threaded_buffer, ipc_monitor_multi_threaded_buffer};
 
 fn race(racekind: RaceKind, config: Arc<Config>) {
     let start = std::time::Instant::now();
@@ -64,18 +64,18 @@ fn race(racekind: RaceKind, config: Arc<Config>) {
             let r = std::hint::black_box(ipc_monitor_multi_threaded_buffer(config));
             buffer_race_condition = Some(*r);
         }
-    };
+    }
 
     if let Some(r) = accum_race_condition {
-        print!("{:?}", r);
+        print!("{r:?}");
     } else if let Some(r) = buffer_race_condition {
-        print!("{:?}", r);
+        print!("{r:?}");
     } else {
         unreachable!("both races are None!!!");
     }
 
     let elapsed = start.elapsed().as_millis();
-    println!("{}", format!("{} ms", elapsed).yellow());
+    println!("{}", format!("{elapsed} ms").yellow());
 
     println!("{}", "=".repeat(80));
     println!();
@@ -92,7 +92,7 @@ fn main() {
         _ => Config::new(ConfigKind::Fast),
     };
 
-    println!("{:?}", config);
+    println!("{config:?}");
     let config = Arc::new(config);
 
     #[cfg(not(miri))]
@@ -110,5 +110,5 @@ fn main() {
     race(RaceKind::BinarySemaphoreAccum, config.clone());
     race(RaceKind::BinarySemaphoreBuffer, config.clone());
     race(RaceKind::IPCMonitorAccum, config.clone());
-    race(RaceKind::IPCMonitorBuffer, config.clone());
+    race(RaceKind::IPCMonitorBuffer, config);
 }

@@ -33,19 +33,20 @@ pub enum ConfigKind {
 }
 
 impl Config {
-    pub fn new(config: ConfigKind) -> Self {
+    #[must_use]
+    pub const fn new(config: ConfigKind) -> Self {
         match config {
-            ConfigKind::Fast => Config {
+            ConfigKind::Fast => Self {
                 num_producer: 4,
                 per_producer: 50,
                 _mode: ConfigKind::Fast,
             },
-            ConfigKind::Medium => Config {
+            ConfigKind::Medium => Self {
                 num_producer: 64,
                 per_producer: 50,
                 _mode: ConfigKind::Medium,
             },
-            ConfigKind::Slow => Config {
+            ConfigKind::Slow => Self {
                 num_producer: 1024,
                 per_producer: 50,
                 _mode: ConfigKind::Slow,
@@ -65,8 +66,8 @@ impl<T> RaceCondition<T>
 where
     T: Copy,
 {
-    pub fn new(expected: T, actual: T) -> Self {
-        RaceCondition { expected, actual }
+    pub const fn new(expected: T, actual: T) -> Self {
+        Self { expected, actual }
     }
 }
 
@@ -75,7 +76,9 @@ where
     T: fmt::Display + PartialEq + SaturatingSub + Copy + Zero,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.expected != self.actual {
+        if self.expected == self.actual {
+            writeln!(f, "{}", "[NO RACE]".bright_green().bold())?;
+        } else {
             writeln!(f, "{}", "[RACE CONDITION]".red().bold().blink())?;
             writeln!(f, "Expected: {}, Actual: {}", self.expected, self.actual)?;
             writeln!(
@@ -87,8 +90,6 @@ where
                     .bright_white()
                     .italic()
             )?;
-        } else {
-            writeln!(f, "{}", "[NO RACE]".bright_green().bold())?;
         }
         Ok(())
     }
