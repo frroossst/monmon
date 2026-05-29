@@ -10,13 +10,14 @@ use std::{
     os::unix::net::{UnixListener, UnixStream},
     path::{Path, PathBuf},
     sync::{
+        Arc, Mutex,
         atomic::{AtomicBool, AtomicU32, Ordering},
-        mpsc, Arc, Mutex,
+        mpsc,
     },
     thread::{self, JoinHandle},
 };
 
-use crate::message::{Message, MonMessage, MESSAGE_SIZE};
+use crate::message::{MESSAGE_SIZE, Message, MonMessage};
 use crate::monitor_trait::Monitor;
 
 static SERVER_COUNTER: AtomicU32 = AtomicU32::new(0);
@@ -223,8 +224,7 @@ impl IPCMonitorServer {
                                 }
                             }
                             Err(_) => {
-                                let _ =
-                                    tx_reader.send(ServerCommand::Disconnect { client_id });
+                                let _ = tx_reader.send(ServerCommand::Disconnect { client_id });
                                 break;
                             }
                         }
