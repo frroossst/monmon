@@ -41,7 +41,7 @@ impl Message {
     /// Underllying type is simple a `NonZero<u64>` to be compatible with ThreadId::as_u64()
     pub fn new(msg: MonMessage) -> Self {
         let tid = std::thread::current().id();
-        Message {
+        Self {
             sender: tid.as_u64(),
             msg,
         }
@@ -51,6 +51,7 @@ impl Message {
         self.sender = sender;
     }
 
+    #[must_use]
     pub fn encode(msg: Message) -> Vec<u8> {
         let mut ser = bincode::encode_to_vec(msg, bincode::config::standard()).unwrap();
         assert!(ser.len() <= MESSAGE_SIZE, "Message too large to encode");

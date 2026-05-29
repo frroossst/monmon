@@ -16,7 +16,7 @@ pub struct BinarySemaphore {
 impl BinarySemaphore {
     /// Creates a new binary semaphore with the given initial value.
     pub const fn new(initial: usize) -> Self {
-        BinarySemaphore {
+        Self {
             count: AtomicUsize::new(initial),
         }
     }

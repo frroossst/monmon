@@ -72,7 +72,7 @@ impl MonitorState {
     }
 
     /// Release the monitor to the highest-priority waiter:
-    /// next_queue first (Hoare semantics), then enter_queue
+    /// `next_queue` first (Hoare semantics), then `enter_queue`
     fn hand_off(&mut self) {
         if let Some(id) = self.next_queue.pop_front() {
             self.mutex_holder = Some(id);
@@ -234,7 +234,7 @@ impl IPCMonitorServer {
             }
         });
 
-        IPCMonitorServer {
+        Self {
             socket_path,
             server_handle: Some(server_handle),
             acceptor_handle: Some(acceptor_handle),
@@ -274,7 +274,7 @@ pub struct IPCMonitorClient {
 
 impl IPCMonitorClient {
     pub fn new(socket_path: &Path) -> Self {
-        IPCMonitorClient {
+        Self {
             socket_path: socket_path.to_path_buf(),
             streams: Mutex::new(HashMap::new()),
         }

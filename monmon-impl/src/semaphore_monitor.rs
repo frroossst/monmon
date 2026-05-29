@@ -14,7 +14,7 @@ pub struct SemaphoreMonitor {
     /// meaning to actual condition variables
     condvars: Vec<Condition>,
 
-    /// number of threads waiting on the monitor's enter_queue
+    /// number of threads waiting on the monitor's `enter_queue`
     next_count: Cell<u32>,
 }
 
@@ -33,7 +33,7 @@ impl SemaphoreMonitor {
             condvars.push(condition);
         }
 
-        SemaphoreMonitor {
+        Self {
             mutex: BinarySemaphore::new(1),
             enter_queue: BinarySemaphore::new(0),
             condvars,
@@ -112,9 +112,7 @@ impl Monitor for SemaphoreMonitor {
     /// 6. Decrements `next_count`.
     fn signal(&self, condition: usize) {
         // Ensure the condition index is valid.
-        if condition >= self.condvars.len() {
-            panic!("signal: Condition index out of bounds");
-        }
+        assert!(condition < self.condvars.len(), "signal: Condition index out of bounds");
 
         // Only proceed if there is actually a thread waiting on this condition.
         // Crucially, check `waiting` *before* potentially blocking self on enter_queue.
