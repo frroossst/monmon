@@ -112,7 +112,10 @@ impl Monitor for SemaphoreMonitor {
     /// 6. Decrements `next_count`.
     fn signal(&self, condition: usize) {
         // Ensure the condition index is valid.
-        assert!(condition < self.condvars.len(), "signal: Condition index out of bounds");
+        assert!(
+            condition < self.condvars.len(),
+            "signal: Condition index out of bounds"
+        );
 
         // Only proceed if there is actually a thread waiting on this condition.
         // Crucially, check `waiting` *before* potentially blocking self on enter_queue.

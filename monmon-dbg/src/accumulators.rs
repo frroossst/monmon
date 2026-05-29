@@ -111,7 +111,9 @@ pub fn stdblib_mutex_multi_threaded_accumulator(config: Arc<Config>) -> Box<Race
         let handle = thread::spawn(move || {
             for _ in 0..config.per_producer {
                 critical_section!({
-                    let _unused = monitor.lock().expect("unable to acquire lock on monitor via guard");
+                    let _unused = monitor
+                        .lock()
+                        .expect("unable to acquire lock on monitor via guard");
                     accum.increment();
                 });
             }

@@ -1,9 +1,18 @@
 use colored::Colorize;
 use std::sync::Arc;
 
-use monmon_dbg::accumulators::{unsafe_multi_threaded_accumulator, sem_monitor_multi_threaded_accumulator, stdblib_mutex_multi_threaded_accumulator, binary_semaphore_multi_threaded_accumulator, futex_multi_threaded_accumulator, proc_macro_multi_threaded_accumulator, ipc_monitor_multi_threaded_accumulator};
+use monmon_dbg::accumulators::{
+    binary_semaphore_multi_threaded_accumulator, futex_multi_threaded_accumulator,
+    ipc_monitor_multi_threaded_accumulator, proc_macro_multi_threaded_accumulator,
+    sem_monitor_multi_threaded_accumulator, stdblib_mutex_multi_threaded_accumulator,
+    unsafe_multi_threaded_accumulator,
+};
 use monmon_dbg::config::{Config, ConfigKind, RaceCondition, RaceKind};
-use monmon_dbg::producer_consumer::{unsafe_multi_threaded_buffer, sem_monitor_multi_threaded_buffer, stdlib_mutex_multi_threaded_buffer, binary_semaphore_multi_threaded_buffer, futex_multi_threaded_buffer, ipc_monitor_multi_threaded_buffer};
+use monmon_dbg::producer_consumer::{
+    binary_semaphore_multi_threaded_buffer, futex_multi_threaded_buffer,
+    ipc_monitor_multi_threaded_buffer, sem_monitor_multi_threaded_buffer,
+    stdlib_mutex_multi_threaded_buffer, unsafe_multi_threaded_buffer,
+};
 
 fn race(racekind: RaceKind, config: Arc<Config>) {
     let start = std::time::Instant::now();

@@ -143,7 +143,9 @@ pub fn stdlib_mutex_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondit
         let handle = thread::spawn(move || {
             for _ in 0..config.per_producer {
                 {
-                    let _guard = monitor.lock().expect("unable to acquire lock on monitor via guard");
+                    let _guard = monitor
+                        .lock()
+                        .expect("unable to acquire lock on monitor via guard");
                     accum.consume();
                 }
             }

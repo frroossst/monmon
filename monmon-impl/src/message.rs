@@ -53,7 +53,8 @@ impl Message {
 
     #[must_use]
     pub fn encode(msg: Message) -> Vec<u8> {
-        let mut ser = bincode::encode_to_vec(msg, bincode::config::standard()).expect("unable to serialize message to bincode vector via config");
+        let mut ser = bincode::encode_to_vec(msg, bincode::config::standard())
+            .expect("unable to serialize message to bincode vector via config");
         assert!(ser.len() <= MESSAGE_SIZE, "Message too large to encode");
         ser.resize(MESSAGE_SIZE, 0);
         ser

@@ -91,7 +91,10 @@ impl Monitor for FutexMonitor {
     }
 
     fn wait(&self, condition: usize) {
-        assert!(condition < self.conditions.len(), "wait: Condition index {condition} out of bounds");
+        assert!(
+            condition < self.conditions.len(),
+            "wait: Condition index {condition} out of bounds"
+        );
 
         // Release the monitor lock before waiting
         let next_count = self.next_count.load(Ordering::Acquire);
@@ -110,7 +113,10 @@ impl Monitor for FutexMonitor {
     }
 
     fn signal(&self, condition: usize) {
-        assert!(condition < self.conditions.len(), "signal: Condition index {condition} out of bounds");
+        assert!(
+            condition < self.conditions.len(),
+            "signal: Condition index {condition} out of bounds"
+        );
 
         // Check if any thread is waiting on this condition
         if self.conditions[condition].waiting_count() > 0 {
@@ -131,7 +137,10 @@ impl Monitor for FutexMonitor {
     }
 
     fn notify(&self, condition: usize) {
-        assert!(condition < self.conditions.len(), "notify: Condition index {condition} out of bounds");
+        assert!(
+            condition < self.conditions.len(),
+            "notify: Condition index {condition} out of bounds"
+        );
 
         // Mesa-style signal: just wake the thread, don't yield control
         self.conditions[condition].signal();

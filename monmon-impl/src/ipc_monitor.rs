@@ -199,7 +199,9 @@ impl IPCMonitorServer {
                 let write_stream = stream;
 
                 let _ = tx.send(ServerCommand::Register {
-                    client_id: client_id.try_into().expect("usize -> u32 shouldnt fail on modern machines"),
+                    client_id: client_id
+                        .try_into()
+                        .expect("usize -> u32 shouldnt fail on modern machines"),
                     write_stream,
                 });
 
@@ -217,14 +219,18 @@ impl IPCMonitorServer {
                             Ok(()) => {
                                 if let Ok(decoded) = Message::decode(&buf) {
                                     let _ = tx_reader.send(ServerCommand::ClientMsg {
-                                        client_id: client_id.try_into().expect("usize -> u32 shouldnt fail on modern machines"),
+                                        client_id: client_id.try_into().expect(
+                                            "usize -> u32 shouldnt fail on modern machines",
+                                        ),
                                         msg: decoded.msg,
                                     });
                                 }
                             }
                             Err(_) => {
-                                let _ = tx_reader.send(ServerCommand::Disconnect { 
-                                    client_id: client_id.try_into().expect("usize -> u32 shouldnt fail on modern machines"),
+                                let _ = tx_reader.send(ServerCommand::Disconnect {
+                                    client_id: client_id
+                                        .try_into()
+                                        .expect("usize -> u32 shouldnt fail on modern machines"),
                                 });
                                 break;
                             }
@@ -296,12 +302,19 @@ impl IPCMonitorClient {
         let mut stream =
             UnixStream::connect(&self.socket_path).expect("Failed to connect to IPC server");
         let msg = Message::new(MonMessage::MonRegister);
-        stream.write_all(&Message::encode(msg)).expect("unable to write message to stream");
+        stream
+            .write_all(&Message::encode(msg))
+            .expect("unable to write message to stream");
         let mut ack = [0u8; 1];
-        stream.read_exact(&mut ack).expect("unable to read exact message from stream");
+        stream
+            .read_exact(&mut ack)
+            .expect("unable to read exact message from stream");
 
         let arc = Arc::new(Mutex::new(stream));
-        self.streams.lock().expect("unable to lock stream").insert(tid, arc.clone());
+        self.streams
+            .lock()
+            .expect("unable to lock stream")
+            .insert(tid, arc.clone());
         arc
     }
 
@@ -310,9 +323,13 @@ impl IPCMonitorClient {
         let stream_arc = self.get_stream();
         let mut stream = stream_arc.lock().expect("unable to acquire lock on stream");
         let msg = Message::new(mon_msg);
-        stream.write_all(&Message::encode(msg)).expect("unable to write message to stream");
+        stream
+            .write_all(&Message::encode(msg))
+            .expect("unable to write message to stream");
         let mut ack = [0u8; 1];
-        stream.read_exact(&mut ack).expect("unable to read exact from stream");
+        stream
+            .read_exact(&mut ack)
+            .expect("unable to read exact from stream");
     }
 }
 
