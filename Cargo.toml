@@ -20,7 +20,14 @@ lto = true
 codegen-units = 1
 panic = "abort"
 
+[workspace.lints.rust]
+unused                        = "deny"
+dead_code                     = "deny"
+missing_debug_implementations = "warn"
+future_incompatible           = "warn"
+nonstandard_style             = "warn"
+
 [workspace.lints.clippy]
-pedantic = "deny"
-nursery  = "deny"
+pedantic = "warn"
+nursery  = "warn"
 

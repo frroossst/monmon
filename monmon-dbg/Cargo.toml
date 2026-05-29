@@ -10,3 +10,6 @@ monmon-proc = { path = "../monmon-proc", version="^0.*" }
 num-traits = "0.2.19"
 rand = "0.9.0"
 
+[lints]
+workspace = true
+
