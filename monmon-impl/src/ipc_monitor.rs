@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 /// IPC based monitor implementation
 ///
 /// Implements the monitor abstraction using blocking Send/Receive/Reply
