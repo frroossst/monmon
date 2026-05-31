@@ -56,7 +56,7 @@ impl UnsafeSharedAccumulator {
 }
 
 #[must_use]
-pub fn unsafe_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition<usize>> {
+pub fn unsafe_multi_threaded_accumulator(config: &Arc<Config>) -> Box<RaceCondition<usize>> {
     println!(
         "{}",
         "unsafe_multi_threaded_accumulator()"
@@ -91,7 +91,7 @@ pub fn unsafe_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceConditi
 }
 
 #[must_use]
-pub fn stdblib_mutex_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition<usize>> {
+pub fn stdblib_mutex_multi_threaded_accumulator(config: &Arc<Config>) -> Box<RaceCondition<usize>> {
     println!(
         "{}",
         "stdlib_mutex_multi_threaded_accumulator()"
@@ -132,7 +132,7 @@ pub fn stdblib_mutex_multi_threaded_accumulator(config: Arc<Config>) -> Box<Race
 }
 
 #[must_use]
-pub fn sem_monitor_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition<usize>> {
+pub fn sem_monitor_multi_threaded_accumulator(config: &Arc<Config>) -> Box<RaceCondition<usize>> {
     println!(
         "{}",
         "sem_monitor_multi_threaded_accumulator()"
@@ -174,7 +174,7 @@ pub fn sem_monitor_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCo
 
 #[must_use]
 pub fn binary_semaphore_multi_threaded_accumulator(
-    config: Arc<Config>,
+    config: &Arc<Config>,
 ) -> Box<RaceCondition<usize>> {
     println!(
         "{}",
@@ -215,7 +215,7 @@ pub fn binary_semaphore_multi_threaded_accumulator(
 }
 
 #[must_use]
-pub fn futex_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition<usize>> {
+pub fn futex_multi_threaded_accumulator(config: &Arc<Config>) -> Box<RaceCondition<usize>> {
     println!(
         "{}",
         "futex_monitor_multi_threaded_accumulator()"
@@ -255,7 +255,7 @@ pub fn futex_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceConditio
 }
 
 #[must_use]
-pub fn ipc_monitor_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition<usize>> {
+pub fn ipc_monitor_multi_threaded_accumulator(config: &Arc<Config>) -> Box<RaceCondition<usize>> {
     println!(
         "{}",
         "ipc_monitor_multi_threaded_accumulator()"
@@ -295,7 +295,7 @@ pub fn ipc_monitor_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCo
 }
 
 #[must_use]
-pub fn proc_macro_multi_threaded_accumulator(config: Arc<Config>) -> Box<RaceCondition<usize>> {
+pub fn proc_macro_multi_threaded_accumulator(config: &Arc<Config>) -> Box<RaceCondition<usize>> {
     println!(
         "{}",
         "proc_macro_multi_threaded_accumulator()"

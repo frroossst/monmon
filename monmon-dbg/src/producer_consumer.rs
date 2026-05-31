@@ -64,7 +64,7 @@ impl UnsafeSharedBuffer {
 }
 
 #[must_use]
-pub fn unsafe_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondition<i64>> {
+pub fn unsafe_multi_threaded_buffer(config: &Arc<Config>) -> Box<RaceCondition<i64>> {
     println!(
         "{}",
         "unsafe_multi_threaded_buffer()"
@@ -107,7 +107,7 @@ pub fn unsafe_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondition<i6
 }
 
 #[must_use]
-pub fn stdlib_mutex_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondition<i64>> {
+pub fn stdlib_mutex_multi_threaded_buffer(config: &Arc<Config>) -> Box<RaceCondition<i64>> {
     println!(
         "{}",
         "stdlib_mutex_multi_threaded_buffer()"
@@ -163,7 +163,7 @@ pub fn stdlib_mutex_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondit
 }
 
 #[must_use]
-pub fn sem_monitor_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondition<i64>> {
+pub fn sem_monitor_multi_threaded_buffer(config: &Arc<Config>) -> Box<RaceCondition<i64>> {
     println!(
         "{}",
         "sem_monitor_multi_threaded_buffer()"
@@ -244,7 +244,7 @@ pub fn sem_monitor_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceConditi
 }
 
 #[must_use]
-pub fn binary_semaphore_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondition<i64>> {
+pub fn binary_semaphore_multi_threaded_buffer(config: &Arc<Config>) -> Box<RaceCondition<i64>> {
     println!(
         "{}",
         "binary_semaphore_multi_threaded_buffer()"
@@ -300,7 +300,7 @@ pub fn binary_semaphore_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCo
 }
 
 #[must_use]
-pub fn futex_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondition<i64>> {
+pub fn futex_multi_threaded_buffer(config: &Arc<Config>) -> Box<RaceCondition<i64>> {
     println!(
         "{}",
         "futex_monitor_multi_threaded_buffer()"
@@ -381,7 +381,8 @@ pub fn futex_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondition<i64
 }
 
 #[must_use]
-pub fn ipc_monitor_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceCondition<i64>> {
+pub fn ipc_monitor_multi_threaded_buffer(config: &Arc<Config>) -> Box<RaceCondition<i64>> {
+    const BUFFER_NOT_EMPTY: usize = 0;
     println!(
         "{}",
         "ipc_monitor_multi_threaded_buffer()"
@@ -393,7 +394,6 @@ pub fn ipc_monitor_multi_threaded_buffer(config: Arc<Config>) -> Box<RaceConditi
     let buffer = Arc::new(UnsafeSharedBuffer::new());
     let mut handles = vec![];
 
-    const BUFFER_NOT_EMPTY: usize = 0;
     let (_server, client) = create_ipc_monitor(1);
     let client = Arc::new(client);
 
