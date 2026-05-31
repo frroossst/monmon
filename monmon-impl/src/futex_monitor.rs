@@ -55,7 +55,7 @@ impl FutexMonitor {
     /// Release the monitor mutex and wake waiters
     fn release_mutex(&self) {
         self.mutex.store(0, Ordering::Release);
-        wake_one(&self.mutex);
+        wake_one(&raw const self.mutex);
     }
 
     /// Wait on the next queue
@@ -67,7 +67,7 @@ impl FutexMonitor {
     /// Signal the next queue
     fn signal_next_queue(&self) {
         self.next_queue.fetch_add(1, Ordering::AcqRel);
-        wake_one(&self.next_queue);
+        wake_one(&raw const self.next_queue);
     }
 }
 
@@ -147,9 +147,7 @@ impl Monitor for FutexMonitor {
     }
 
     fn broadcast(&self, condition: usize) {
-        if condition >= self.conditions.len() {
-            panic!("broadcast: Condition index {} out of bounds", condition);
-        }
+        assert!(condition < self.conditions.len(), "broadcast: Condition index {} out of bounds", condition);
 
         // Wake all threads waiting on this condition
         let woken_count = self.conditions[condition].broadcast();

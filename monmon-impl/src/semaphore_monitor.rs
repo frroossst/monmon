@@ -63,10 +63,7 @@ impl Monitor for SemaphoreMonitor {
     ///    (due to the Hoare semantics enforced by `signal`'s wait on `enter_queue`).
     fn wait(&self, condition: usize) {
         // Ensure the condition index is valid.
-        if condition >= self.condvars.len() {
-            // Or return an error, depending on desired robustness
-            panic!("wait: Condition index out of bounds");
-        }
+        assert!(condition < self.condvars.len(), "wait: Condition index out of bounds");
 
         let cond = self.condvars.get(condition).expect("Out of bounds");
 
