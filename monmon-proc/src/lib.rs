@@ -4,7 +4,7 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, spanned::Spanned};
 
-fn report_error<T: Spanned>(span: T, message: &str) -> TokenStream {
+fn report_error<T: Spanned>(span: &T, message: &str) -> TokenStream {
     Error::new(span.span(), message).into_compile_error().into()
 }
 
@@ -38,7 +38,7 @@ pub fn synchronised(attr: TokenStream, item: TokenStream) -> TokenStream {
         // No attribute specified, try to find monitor parameter automatically
         if mon_arg.is_none() {
             return report_error(
-                input.sig.paren_token.span,
+                &input.sig.paren_token.span,
                 "No argument of type &impl Monitor found",
             );
         }
@@ -54,7 +54,7 @@ pub fn synchronised(attr: TokenStream, item: TokenStream) -> TokenStream {
             Ok(expr) => expr,
             Err(_) => {
                 return report_error(
-                    input.sig.paren_token.span,
+                    &input.sig.paren_token.span,
                     "Failed to parse attribute as expression",
                 );
             }
@@ -76,7 +76,7 @@ pub fn synchronised(attr: TokenStream, item: TokenStream) -> TokenStream {
             }
             _ => {
                 return report_error(
-                    input.sig.paren_token.span,
+                    &input.sig.paren_token.span,
                     "Attribute expression must be a path, reference, or field access",
                 );
             }
