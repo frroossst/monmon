@@ -12,7 +12,7 @@ pub struct Condition {
 
 impl Default for Condition {
     fn default() -> Self {
-        Condition {
+        Self {
             waiting: Cell::new(0),
             sem: BinarySemaphore::new(0),
         }
@@ -60,7 +60,7 @@ impl FutexCondition {
             // Change the futex word value to wake waiters
             self.futex_word.fetch_add(1, Ordering::AcqRel);
             // Wake one waiter
-            wake_one(&self.futex_word);
+            wake_one(&raw const self.futex_word);
             true
         } else {
             false
@@ -74,7 +74,7 @@ impl FutexCondition {
             // Change the futex word value to wake waiters
             self.futex_word.fetch_add(1, Ordering::AcqRel);
             // Wake all waiters
-            wake_all(&self.futex_word);
+            wake_all(&raw const self.futex_word);
             waiting_count
         } else {
             0

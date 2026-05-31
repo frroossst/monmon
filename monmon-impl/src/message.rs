@@ -18,7 +18,7 @@ pub trait Communication {
 pub const MESSAGE_SIZE: usize = 16;
 
 /// Message types for the IPC monitor
-#[derive(Debug, bincode::Encode, bincode::Decode, PartialEq)]
+#[derive(Debug, bincode::Encode, bincode::Decode, PartialEq, Eq)]
 pub enum MonMessage {
     MonRegister,
     MonEnter,
@@ -47,7 +47,7 @@ impl Message {
         }
     }
 
-    pub fn set_sender(&mut self, sender: NonZero<u64>) {
+    pub const fn set_sender(&mut self, sender: NonZero<u64>) {
         self.sender = sender;
     }
 
