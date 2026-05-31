@@ -54,7 +54,7 @@ struct MonitorState {
 
 impl MonitorState {
     fn new(num_conditions: usize) -> Self {
-        MonitorState {
+        Self {
             mutex_holder: None,
             enter_queue: VecDeque::new(),
             next_queue: VecDeque::new(),
