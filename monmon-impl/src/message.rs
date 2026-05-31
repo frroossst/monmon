@@ -52,7 +52,7 @@ impl Message {
     }
 
     #[must_use]
-    pub fn encode(msg: Message) -> Vec<u8> {
+    pub fn encode(msg: Self) -> Vec<u8> {
         let mut ser = bincode::encode_to_vec(msg, bincode::config::standard())
             .expect("unable to serialize message to bincode vector via config");
         assert!(ser.len() <= MESSAGE_SIZE, "Message too large to encode");
@@ -60,7 +60,7 @@ impl Message {
         ser
     }
 
-    pub fn decode(buffer: &[u8]) -> Result<Message, bincode::error::DecodeError> {
+    pub fn decode(buffer: &[u8]) -> Result<Self, bincode::error::DecodeError> {
         let deser = bincode::decode_from_slice(buffer, bincode::config::standard());
         deser.map(|(msg, _)| msg)
     }

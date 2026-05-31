@@ -25,7 +25,7 @@ impl FutexMonitor {
             conditions.push(FutexCondition::default());
         }
 
-        FutexMonitor {
+        Self {
             mutex: AtomicU32::new(0), // 0 = unlocked
             conditions,
             next_count: AtomicU32::new(0),
