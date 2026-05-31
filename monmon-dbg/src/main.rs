@@ -96,9 +96,9 @@ fn main() {
 
     let mode = args.next().unwrap_or_else(|| "fast".into());
     let config = match mode.as_str() {
-        "slow" => Config::new(ConfigKind::Slow),
-        "medium" => Config::new(ConfigKind::Medium),
-        _ => Config::new(ConfigKind::Fast),
+        "slow" => Config::new(&ConfigKind::Slow),
+        "medium" => Config::new(&ConfigKind::Medium),
+        _ => Config::new(&ConfigKind::Fast),
     };
 
     println!("{config:?}");

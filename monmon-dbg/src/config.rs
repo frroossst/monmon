@@ -34,7 +34,7 @@ pub enum ConfigKind {
 
 impl Config {
     #[must_use]
-    pub const fn new(config: ConfigKind) -> Self {
+    pub const fn new(config: &ConfigKind) -> Self {
         match config {
             ConfigKind::Fast => Self {
                 num_producer: 4,
