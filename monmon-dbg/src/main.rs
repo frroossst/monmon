@@ -14,7 +14,7 @@ use monmon_dbg::producer_consumer::{
     stdlib_mutex_multi_threaded_buffer, unsafe_multi_threaded_buffer,
 };
 
-fn race(racekind: RaceKind, config: Arc<Config>) {
+fn race(racekind: &RaceKind, config: Arc<Config>) {
     let start = std::time::Instant::now();
 
     let mut accum_race_condition: Option<RaceCondition<usize>> = None;
@@ -106,18 +106,18 @@ fn main() {
 
     #[cfg(not(miri))]
     {
-        race(RaceKind::UnsafeAccum, config.clone());
-        race(RaceKind::UnsafeBuffer, config.clone());
+        race(&RaceKind::UnsafeAccum, config.clone());
+        race(&RaceKind::UnsafeBuffer, config.clone());
     }
-    race(RaceKind::SemaphoreMonitorAccum, config.clone());
-    race(RaceKind::SemaphoreMonitorBuffer, config.clone());
-    race(RaceKind::FutexMonitorAccum, config.clone());
-    race(RaceKind::FutexMonitorBuffer, config.clone());
-    race(RaceKind::SyncProcMacroAccum, config.clone());
-    race(RaceKind::StdlibMutexAccum, config.clone());
-    race(RaceKind::StdlibMutexBuffer, config.clone());
-    race(RaceKind::BinarySemaphoreAccum, config.clone());
-    race(RaceKind::BinarySemaphoreBuffer, config.clone());
-    race(RaceKind::IPCMonitorAccum, config.clone());
-    race(RaceKind::IPCMonitorBuffer, config);
+    race(&RaceKind::SemaphoreMonitorAccum, config.clone());
+    race(&RaceKind::SemaphoreMonitorBuffer, config.clone());
+    race(&RaceKind::FutexMonitorAccum, config.clone());
+    race(&RaceKind::FutexMonitorBuffer, config.clone());
+    race(&RaceKind::SyncProcMacroAccum, config.clone());
+    race(&RaceKind::StdlibMutexAccum, config.clone());
+    race(&RaceKind::StdlibMutexBuffer, config.clone());
+    race(&RaceKind::BinarySemaphoreAccum, config.clone());
+    race(&RaceKind::BinarySemaphoreBuffer, config.clone());
+    race(&RaceKind::IPCMonitorAccum, config.clone());
+    race(&RaceKind::IPCMonitorBuffer, config);
 }
