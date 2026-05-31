@@ -18,7 +18,7 @@ pub trait Communication {
 pub const MESSAGE_SIZE: usize = 16;
 
 /// Message types for the IPC monitor
-#[derive(Debug, bincode::Encode, bincode::Decode, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, bincode::Encode, bincode::Decode, PartialEq, Eq)]
 pub enum MonMessage {
     MonRegister,
     MonEnter,
