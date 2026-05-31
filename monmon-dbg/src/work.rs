@@ -12,9 +12,9 @@ pub fn do_something() {
                 thread::sleep(std::time::Duration::from_millis(sleep_duration));
             }
             1 => {
-                let busy_wait_duration = rng.random_range(1..50);
+                let busy_wait_duration = std::time::Duration::from_millis(rng.random_range(1..50));
                 let start_time = std::time::Instant::now();
-                while start_time.elapsed().as_millis() < busy_wait_duration as u128 {}
+                while start_time.elapsed() < busy_wait_duration {}
             }
             _ => {
                 // Do nothing

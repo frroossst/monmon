@@ -147,7 +147,10 @@ impl Monitor for FutexMonitor {
     }
 
     fn broadcast(&self, condition: usize) {
-        assert!(condition < self.conditions.len(), "broadcast: Condition index {condition} out of bounds");
+        assert!(
+            condition < self.conditions.len(),
+            "broadcast: Condition index {condition} out of bounds"
+        );
 
         // Wake all threads waiting on this condition
         let woken_count = self.conditions[condition].broadcast();
@@ -155,8 +158,7 @@ impl Monitor for FutexMonitor {
         // In Mesa semantics, we don't yield control immediately
         // All woken threads will compete for the monitor lock when we leave
         if woken_count > 0 {
-            println!(
-                "Broadcast woke {woken_count} threads on condition {condition}");
+            println!("Broadcast woke {woken_count} threads on condition {condition}");
         }
     }
 }
