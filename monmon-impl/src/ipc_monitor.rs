@@ -212,25 +212,22 @@ impl IPCMonitorServer {
                             break;
                         }
                         let mut buf = [0u8; MESSAGE_SIZE];
-                        match reader.read_exact(&mut buf) {
-                            Ok(()) => {
-                                if let Ok(decoded) = Message::decode(&buf) {
-                                    let _ = tx_reader.send(ServerCommand::ClientMsg {
-                                        client_id: client_id.try_into().expect(
-                                            "usize -> u32 shouldnt fail on modern machines",
-                                        ),
-                                        msg: decoded.msg,
-                                    });
-                                }
-                            }
-                            Err(_) => {
-                                let _ = tx_reader.send(ServerCommand::Disconnect {
-                                    client_id: client_id
-                                        .try_into()
-                                        .expect("usize -> u32 shouldnt fail on modern machines"),
+                        if let Ok(()) = reader.read_exact(&mut buf) {
+                            if let Ok(decoded) = Message::decode(&buf) {
+                                let _ = tx_reader.send(ServerCommand::ClientMsg {
+                                    client_id: client_id.try_into().expect(
+                                        "usize -> u32 shouldnt fail on modern machines",
+                                    ),
+                                    msg: decoded.msg,
                                 });
-                                break;
                             }
+                        } else {
+                            let _ = tx_reader.send(ServerCommand::Disconnect {
+                                client_id: client_id
+                                    .try_into()
+                                    .expect("usize -> u32 shouldnt fail on modern machines"),
+                            });
+                            break;
                         }
                     }
                 });
