@@ -23,7 +23,7 @@ impl<'a, M: Monitor> MonitorGuard<'a, M> {
     }
 }
 
-impl<'a, M: Monitor> Drop for MonitorGuard<'a, M> {
+impl<M: Monitor> Drop for MonitorGuard<'_, M> {
     fn drop(&mut self) {
         self.monitor.leave();
     }

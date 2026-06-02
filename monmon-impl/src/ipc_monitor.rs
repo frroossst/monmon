@@ -186,10 +186,7 @@ impl IPCMonitorServer {
                 if shutdown_acceptor.load(Ordering::Relaxed) {
                     break;
                 }
-                let stream = match stream_result {
-                    Ok(s) => s,
-                    Err(_) => break,
-                };
+                let Ok(stream) = stream_result else { break };
 
                 let client_id = next_id;
                 // next_id += 1;
