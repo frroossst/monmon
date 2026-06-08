@@ -212,7 +212,7 @@ impl IPCMonitorServer {
                             break;
                         }
                         let mut buf = [0u8; MESSAGE_SIZE];
-                        if let Ok(()) = reader.read_exact(&mut buf) {
+                        if matches!(reader.read_exact(&mut buf), Ok(())) {
                             if let Ok(decoded) = Message::decode(&buf) {
                                 let _ = tx_reader.send(ServerCommand::ClientMsg {
                                     client_id: client_id.try_into().expect(
