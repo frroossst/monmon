@@ -36,6 +36,8 @@ must_use_candidate = "allow"
 # `.expect("why")` messages already document panic/error conditions inline.
 missing_panics_doc = "allow"
 missing_errors_doc = "allow"
+# Local `const`/`fn` definitions read fine next to the code that uses them.
+items_after_statements = "allow"
 # Force `.expect("why")` over `.unwrap()`
 unwrap_used = "deny"
 
