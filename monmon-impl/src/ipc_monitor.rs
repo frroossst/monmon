@@ -215,9 +215,9 @@ impl IPCMonitorServer {
                         if matches!(reader.read_exact(&mut buf), Ok(())) {
                             if let Ok(decoded) = Message::decode(&buf) {
                                 let _ = tx_reader.send(ServerCommand::ClientMsg {
-                                    client_id: client_id.try_into().expect(
-                                        "usize -> u32 shouldnt fail on modern machines",
-                                    ),
+                                    client_id: client_id
+                                        .try_into()
+                                        .expect("usize -> u32 shouldnt fail on modern machines"),
                                     msg: decoded.msg,
                                 });
                             }
